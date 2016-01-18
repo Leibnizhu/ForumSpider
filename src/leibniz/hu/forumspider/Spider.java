@@ -75,14 +75,14 @@ public class Spider {
 			String sTemp = initialURL.substring(0, initialURL.lastIndexOf('/'));
 			String sWebsiteLink = sTemp.substring(0, sTemp.lastIndexOf('/'));
 			//Regax for hyper links.
-			//<a href="/arthtml/233.html" target="_blank">收到分公司到法规水电费过</a>
+			//e.g. <a href="/arthtml/233.html" target="_blank">收到分公司到法规水电费过</a>
 			Pattern pArticleLink = Pattern.compile("<a\\s*href=\"(/arthtml/.+?)\".+?>(.+?)</a>");
-			// href="/artlist/7-233.html" class="pagelink_a">下一页</a>
+			// e.g. href="/artlist/7-233.html" class="pagelink_a">下一页</a>
 			Pattern pNextLink = Pattern.compile("href=\"(/artlist/.{1,20}?)\".{1,30}?>下一页</a>");
 			//开始遍历帖子
 			while(true){
 				//System.out.println(unHandleList);
-				System.out.println(curURL);
+				//System.out.println(curURL);
 				URLConnection conn = new URL(curURL).openConnection();
 				conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
 				brWeb = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -98,12 +98,13 @@ public class Spider {
 								//放入待处理队列，并跳出判断的循环
 								//如果等待序列过长，则休眠
 								while(unHandleList.size() >= 128){
+									System.out.println("Unhandled list is too long, please wait...");
 									Thread.sleep(100);
 								}
 								unHandleList.add(sWebsiteLink + mArticleLink.group(1));
 								//如果下载的线程太多也
-								if(Thread.activeCount() <= 64) {
-									System.out.println("Thread stack full!");
+								if(Thread.activeCount() <= 128) {
+									//System.out.println("Thread stack full!");
 									new Thread(new DownloadThread(unHandleList)).start();
 								}
 								//System.out.println(sArticleLink + mArticleLink.group(1) + "," + mArticleLink.group(2));
