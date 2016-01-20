@@ -3,5 +3,7 @@
 	<starturl>testURL</starturl>
 	<keywords>
 		<keyword>testKeyword</keyword>
+		<keyword>testKeyword</keyword>
 	</keywords>
+	<savepath>/home/***/download</savepath>
 </spider>
