@@ -1,9 +1,9 @@
 package leibniz.hu.forumspider;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -30,7 +30,6 @@ public class Spider {
 	private ArrayList<Map<String, String>> unHandleList = new ArrayList<Map<String, String>>();
 	
 	/**
-	 * TODO: 线程数优化
 	 * 从spider.cfg.xml文件中读取爬虫的配置
 	 */
 	private void readConfig(){
@@ -92,10 +91,8 @@ public class Spider {
 	public void startSpider(){
 		readConfig();
 		//System.out.println(initialURL + ", " + keywords);
-		BufferedReader brWeb;
+		InputStreamReader brWeb = null;
 		try {
-			//Regax for email address.
-			//Pattern pEmail = Pattern.compile("\\w+@\\w+(\\.\\w{1,4})+");
 			String curURL = initialURL;
 			//Regax for hyper links.
 			//e.g. <a href="/arthtml/233.html" target="_blank">收到分公司到法规水电费过</a>
@@ -105,54 +102,64 @@ public class Spider {
 			//开始遍历帖子
 			while(true){
 				//System.out.println(unHandleList);
-				//System.out.println(curURL);
+				System.out.println("打开新一页帖子列表：" + curURL);
 				URLConnection conn = new URL(curURL).openConnection();
 				conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
-				brWeb = new BufferedReader(new InputStreamReader(conn.getInputStream()), 1024*120);
+				conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+				conn.setRequestProperty("Connection", "keep-alive");
+				conn.setRequestProperty("Referer", initialURL);
+				((HttpURLConnection) conn).setRequestMethod("GET");  
+				brWeb = new InputStreamReader(conn.getInputStream());
+				char[] cbuf = new char[1024*100];
 				String line = null;
 				//逐行读取返回的页面
-				while((line = brWeb.readLine()) != null) {
+				while((brWeb.read(cbuf)) > 0) {
+					line = String.valueOf(cbuf);
 					//匹配到帖子链接
 					Matcher mArticleLink = pArticleLink.matcher(line);
 					while(mArticleLink.find()){
 						//判断标题是否符合关键词
 						for(String keyword: keywords){
-							if(mArticleLink.group(2).contains(keyword)){
-								//放入待处理队列，并跳出判断的循环
-								//如果等待序列过长，则休眠
-								System.out.println(unHandleList.size() );
-								while(unHandleList.size() >= 64){
+							while(mArticleLink.group(2).contains(keyword)){
+								System.out.println("等待处理的帖子还有：" + unHandleList.size() + " 个");
+								/*while(unHandleList.size() >= 64){
+									//如果等待序列过长，则休眠
 									System.out.println("Unhandled list is too long, please wait...");
 									Thread.sleep(1000);
-								}
+								}*/
+								//放入待处理队列
 								Map<String, String> tempResult = new HashMap<String, String>(); 
 								tempResult.put("title", mArticleLink.group(2));
 								tempResult.put("url", relativeURLHandler(mArticleLink.group(1)));
-								unHandleList.add(tempResult);
-								//如果下载的线程太多则等下次再开
-								if(Thread.activeCount() <= 50) {
-									System.out.println("Thread stack full!");
-									new Thread(new DownloadThread(unHandleList, savepath)).start();
+								synchronized (unHandleList) {
+									unHandleList.add(tempResult);
 								}
-								//System.out.println(sArticleLink + mArticleLink.group(1) + "," + mArticleLink.group(2));
+								//如果下载的线程太多则等下次再开
+								while(ArticleScanThread.threadNum <= 5) {
+									//开启1个帖子分析器的种子线程
+									new Thread(new ArticleScanThread(unHandleList, savepath)).start();
+								}
+								//跳出匹配关键词的循环
 								break;
 							}
 						}
 					}
 					//匹配下一页链接
 					Matcher mNextLink = pNextLink.matcher(line);
-					while(mNextLink.find()){
+					if(mNextLink.find()){
 						curURL = relativeURLHandler(mNextLink.group(1));
 						break;
 					}
 				}
 				//到此读完整个页面 
+				if(brWeb != null){
+					brWeb.close();
+				}
+				((HttpURLConnection)conn).disconnect();
 			}
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
