@@ -2,7 +2,6 @@ package leibniz.hu.forumspider;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -10,6 +9,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -90,8 +90,6 @@ public class Spider {
 	@Test
 	public void startSpider(){
 		readConfig();
-		//System.out.println(initialURL + ", " + keywords);
-		InputStreamReader brWeb = null;
 		try {
 			String curURL = initialURL;
 			//Regax for hyper links.
@@ -101,61 +99,56 @@ public class Spider {
 			Pattern pNextLink = Pattern.compile("href=\"(/artlist/.{1,20}?)\".{1,30}?>下一页</a>");
 			//开始遍历帖子
 			while(true){
-				//System.out.println(unHandleList);
 				System.out.println("打开新一页帖子列表：" + curURL);
+				
+				//准备请求头部信息
 				URLConnection conn = new URL(curURL).openConnection();
 				conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
 				conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
 				conn.setRequestProperty("Connection", "keep-alive");
 				conn.setRequestProperty("Referer", initialURL);
 				((HttpURLConnection) conn).setRequestMethod("GET");  
-				brWeb = new InputStreamReader(conn.getInputStream());
-				char[] cbuf = new char[1024*100];
-				String line = null;
-				//逐行读取返回的页面
-				while((brWeb.read(cbuf)) > 0) {
-					line = String.valueOf(cbuf);
-					//匹配到帖子链接
-					Matcher mArticleLink = pArticleLink.matcher(line);
-					while(mArticleLink.find()){
-						//判断标题是否符合关键词
-						for(String keyword: keywords){
-							while(mArticleLink.group(2).contains(keyword)){
-								System.out.println("等待处理的帖子还有：" + unHandleList.size() + " 个");
-								/*while(unHandleList.size() >= 64){
-									//如果等待序列过长，则休眠
-									System.out.println("Unhandled list is too long, please wait...");
-									Thread.sleep(1000);
-								}*/
-								//放入待处理队列
-								Map<String, String> tempResult = new HashMap<String, String>(); 
-								tempResult.put("title", mArticleLink.group(2));
-								tempResult.put("url", relativeURLHandler(mArticleLink.group(1)));
-								synchronized (unHandleList) {
-									unHandleList.add(tempResult);
-								}
-								//如果下载的线程太多则等下次再开
-								while(ArticleScanThread.threadNum <= 5) {
-									//开启1个帖子分析器的种子线程
-									new Thread(new ArticleScanThread(unHandleList, savepath)).start();
-								}
-								//跳出匹配关键词的循环
-								break;
-							}
-						}
-					}
-					//匹配下一页链接
-					Matcher mNextLink = pNextLink.matcher(line);
-					if(mNextLink.find()){
-						curURL = relativeURLHandler(mNextLink.group(1));
-						break;
-					}
-				}
-				//到此读完整个页面 
-				if(brWeb != null){
-					brWeb.close();
-				}
-				((HttpURLConnection)conn).disconnect();
+				
+				//先直接读取整个页面
+				StringBuffer bufHtml = new StringBuffer();
+				Scanner scanner = new Scanner(conn.getInputStream());  
+                while (scanner.hasNextLine()) {  
+                	bufHtml.append(scanner.nextLine());  
+                }
+                String strHtml = bufHtml.toString();
+                //到此读完整个页面，关闭资源
+                scanner.close();
+                ((HttpURLConnection)conn).disconnect();
+                
+                Matcher mArticleLink = pArticleLink.matcher(strHtml);
+                //用while遍历整个网页所有的匹配的地址
+                while(mArticleLink.find()){
+                	//判断标题是否符合关键词
+                	for(String keyword: keywords){
+                		if(mArticleLink.group(2).contains(keyword)){
+                			System.out.println("等待处理的帖子还有：" + unHandleList.size() + " 个");
+                			//放入待处理队列
+                			Map<String, String> tempResult = new HashMap<String, String>(); 
+                			tempResult.put("title", mArticleLink.group(2));
+                			tempResult.put("url", relativeURLHandler(mArticleLink.group(1)));
+                			synchronized (unHandleList) {
+                				unHandleList.add(tempResult);
+                			}
+                			//如果帖子分析器的线程不够，则开启种子线程
+                			while(ArticleScanThread.threadNum <= 5) {
+                				new Thread(new ArticleScanThread(unHandleList, savepath)).start();
+                			}
+                			//跳出匹配关键词的循环
+                			break;
+                		}
+                	}//break跳出到这里，准备寻找下一个符合帖子链接正则的
+                }
+                //匹配下一页链接
+                Matcher mNextLink = pNextLink.matcher(strHtml);
+                if(mNextLink.find()){
+                	curURL = relativeURLHandler(mNextLink.group(1));
+                	break;
+                }
 			}
 		} catch (MalformedURLException e) {
 			e.printStackTrace();

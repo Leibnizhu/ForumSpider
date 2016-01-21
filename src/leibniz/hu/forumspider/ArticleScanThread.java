@@ -2,13 +2,13 @@ package leibniz.hu.forumspider;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,18 +63,45 @@ public class ArticleScanThread implements Runnable {
 				//标识是否有下一页
 				boolean nextFlag ;
 				
-				
-				InputStreamReader brWeb  = null;
 				try {
 					while(true){
 						System.out.println("正在处理帖子《" + tempMission.get("title") + "》的新一页："  + curURL);
 						nextFlag = false;
+						
+						//准备请求头部信息
 						URLConnection conn = new URL(curURL).openConnection();
 						conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
 						conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
 						conn.setRequestProperty("Connection", "keep-alive");
 						conn.setRequestProperty("Referer", articleURL);
-						((HttpURLConnection) conn).setRequestMethod("GET");  
+						((HttpURLConnection) conn).setRequestMethod("GET");
+						//先直接读取整个页面
+						StringBuffer bufHtml = new StringBuffer();
+						Scanner scanner = new Scanner(conn.getInputStream());  
+		                while (scanner.hasNextLine()) {  
+		                	bufHtml.append(scanner.nextLine());  
+		                }
+		                String strHtml = bufHtml.toString();
+		                System.out.println("帖子《" + tempMission.get("title") + "》下载完毕，共计" + strHtml.length() + "字节。开始解析图片地址……");
+		                
+		                //匹配到图片链接
+		                Matcher mImageLink = pImageLink.matcher(strHtml);
+		                while(mImageLink.find()){
+		                	//创建保存图片的子文件夹
+		                	File saveDict = new File(saveDictionary);
+		                	if(!saveDict.exists()){
+		                		saveDict.mkdirs();
+		                	}
+		                	new Thread(new ImageDownThread(mImageLink.group(1), saveDictionary)).start();
+		                }
+		                
+		                //匹配到下一页的链接
+		                Matcher mNextLink = pNextLink.matcher(strHtml);
+		                if(mNextLink.find()){
+		                	curURL = sWebsiteLink + mNextLink.group(1);
+		                	nextFlag = true;
+		                }
+		                /*
 						brWeb = new InputStreamReader(conn.getInputStream());
 						char[] cbuf = new char[1024*100];
 						String line = null;
@@ -82,30 +109,9 @@ public class ArticleScanThread implements Runnable {
 						int i;
 						while((i=brWeb.read(cbuf)) > 0) {
 							System.out.print(i+",");
-							line = String.valueOf(cbuf);
-							//匹配到图片链接
-							Matcher mImageLink = pImageLink.matcher(line);
-							while(mImageLink.find()){
-									//Thread.sleep(2000);
-									//创建保存图片的子文件夹
-									File saveDict = new File(saveDictionary);
-									if(!saveDict.exists()){
-										saveDict.mkdirs();
-									}
-									new Thread(new ImageDownThread(mImageLink.group(1), saveDictionary)).start();
-								//}
-							}
-							//匹配到下一页的链接
-							Matcher mNextLink = pNextLink.matcher(line);
-							if(mNextLink.find()){
-								curURL = sWebsiteLink + mNextLink.group(1);
-								nextFlag = true;
-							}
-						}
+							line = String.valueOf(cbuf);*/
 						//读取完整个页面了，关闭资源
-						if(brWeb != null){
-							brWeb.close();
-						}
+		                scanner.close();
 						((HttpURLConnection)conn).disconnect();
 						//还是没找到下一页的话，退出循环
 						if(nextFlag == false){

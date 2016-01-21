@@ -35,7 +35,7 @@ public class ImageDownThread implements Runnable {
 			inStream = conn.getInputStream();  
 			fs = new FileOutputStream(new File(saveDictionary, filename));  
 			
-			byte[] buffer = new byte[1024*10];  
+			byte[] buffer = new byte[1024*64];  
 			int byteread = 0;
 			while ((byteread = inStream.read(buffer)) != -1) {  
 				fs.write(buffer, 0, byteread);  
