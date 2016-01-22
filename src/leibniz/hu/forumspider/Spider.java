@@ -103,11 +103,12 @@ public class Spider {
 				
 				//准备请求头部信息
 				URLConnection conn = new URL(curURL).openConnection();
-				conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
-				conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-				conn.setRequestProperty("Connection", "keep-alive");
-				conn.setRequestProperty("Referer", initialURL);
+				SpiderUtils.initReqHeader(conn, initialURL);
 				((HttpURLConnection) conn).setRequestMethod("GET");  
+				/*conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
+				conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,**;q=0.8");
+				conn.setRequestProperty("Connection", "keep-alive");
+				conn.setRequestProperty("Referer", initialURL);*/
 				
 				//先直接读取整个页面
 				StringBuffer bufHtml = new StringBuffer();
@@ -116,6 +117,7 @@ public class Spider {
                 	bufHtml.append(scanner.nextLine());  
                 }
                 String strHtml = bufHtml.toString();
+                System.out.println("帖子l列表" + curURL + "下载完毕，共计" + strHtml.length() + "字节。开始目标帖子地址……");
                 //到此读完整个页面，关闭资源
                 scanner.close();
                 ((HttpURLConnection)conn).disconnect();
@@ -126,7 +128,6 @@ public class Spider {
                 	//判断标题是否符合关键词
                 	for(String keyword: keywords){
                 		if(mArticleLink.group(2).contains(keyword)){
-                			System.out.println("等待处理的帖子还有：" + unHandleList.size() + " 个");
                 			//放入待处理队列
                 			Map<String, String> tempResult = new HashMap<String, String>(); 
                 			tempResult.put("title", mArticleLink.group(2));
@@ -138,6 +139,7 @@ public class Spider {
                 			while(ArticleScanThread.threadNum <= 5) {
                 				new Thread(new ArticleScanThread(unHandleList, savepath)).start();
                 			}
+                			System.out.println("等待处理的帖子还有：" + unHandleList.size() + " 个");
                 			//跳出匹配关键词的循环
                 			break;
                 		}
@@ -147,7 +149,6 @@ public class Spider {
                 Matcher mNextLink = pNextLink.matcher(strHtml);
                 if(mNextLink.find()){
                 	curURL = relativeURLHandler(mNextLink.group(1));
-                	break;
                 }
 			}
 		} catch (MalformedURLException e) {

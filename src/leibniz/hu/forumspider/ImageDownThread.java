@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Date;
 
 public class ImageDownThread implements Runnable {
 	private String imageURL;
@@ -22,7 +23,6 @@ public class ImageDownThread implements Runnable {
 	public void run() {
 		//e.g. http://2342.net/1/323544ufc2de51aa6204.jpg
 		String filename = imageURL.substring(imageURL.lastIndexOf('/') + 1);
-		//System.out.println("正在下载图片: " + imageURL);
 		FileOutputStream fs = null;
 		InputStream inStream = null;
 		
@@ -43,7 +43,7 @@ public class ImageDownThread implements Runnable {
 			((HttpURLConnection)conn).disconnect();
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.println("下载图片：" + imageURL + "失败！！");
+			System.out.println(new Date() + "下载图片：" + imageURL + "失败！！");
 		}  finally{
 			try {
 				if(fs != null){

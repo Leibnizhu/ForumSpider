@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -33,18 +34,18 @@ public class ArticleScanThread implements Runnable {
 	@Override
 	public void run() {
 		threadNum++;
+		Map<String, String> tempMission = null;
 		System.out.println("解析器启动------------>当前运行的帖子解析器有" + threadNum + "个");
 		while(true){
+			//待办任务大于帖子解析器数量N倍则开启新线程
 			if(unHandleList.size() / threadNum >= 2){
-				//待办任务大于帖子解析器数量N倍则开启新线程
 				new Thread(new ArticleScanThread(unHandleList, originDictionary)).start();
 			}
-			Map<String, String> tempMission = null;
 			if(unHandleList.size() > 0){
-				synchronized (unHandleList) {
+				//synchronized (unHandleList) {
 					//每次从待处理队列中取出一个任务
 					tempMission = unHandleList.remove(0);
-				}
+				//}
 				//得到新任务的url及标题（保存路径）
 				this.articleURL = tempMission.get("url");
 				this.saveDictionary = originDictionary +"/" + tempMission.get("title");
@@ -65,16 +66,18 @@ public class ArticleScanThread implements Runnable {
 				
 				try {
 					while(true){
-						System.out.println("正在处理帖子《" + tempMission.get("title") + "》的新一页："  + curURL);
+						System.out.println(new Date() + "正在处理帖子《" + tempMission.get("title") + "》的新一页："  + curURL);
 						nextFlag = false;
 						
 						//准备请求头部信息
 						URLConnection conn = new URL(curURL).openConnection();
-						conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
-						conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-						conn.setRequestProperty("Connection", "keep-alive");
-						conn.setRequestProperty("Referer", articleURL);
+						SpiderUtils.initReqHeader(conn, articleURL);
 						((HttpURLConnection) conn).setRequestMethod("GET");
+						/*conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
+						conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*//*;q=0.8");
+						conn.setRequestProperty("Connection", "keep-alive");
+						conn.setRequestProperty("Referer", articleURL);*/
+						
 						//先直接读取整个页面
 						StringBuffer bufHtml = new StringBuffer();
 						Scanner scanner = new Scanner(conn.getInputStream());  
@@ -82,7 +85,10 @@ public class ArticleScanThread implements Runnable {
 		                	bufHtml.append(scanner.nextLine());  
 		                }
 		                String strHtml = bufHtml.toString();
-		                System.out.println("帖子《" + tempMission.get("title") + "》下载完毕，共计" + strHtml.length() + "字节。开始解析图片地址……");
+		                System.out.println(new Date() + "帖子《" + tempMission.get("title") + "》下载完毕，共计" + strHtml.length() + "字节。开始解析图片地址……");
+		                //读取完整个页面了，关闭资源
+		                scanner.close();
+		                ((HttpURLConnection)conn).disconnect();
 		                
 		                //匹配到图片链接
 		                Matcher mImageLink = pImageLink.matcher(strHtml);
@@ -101,18 +107,6 @@ public class ArticleScanThread implements Runnable {
 		                	curURL = sWebsiteLink + mNextLink.group(1);
 		                	nextFlag = true;
 		                }
-		                /*
-						brWeb = new InputStreamReader(conn.getInputStream());
-						char[] cbuf = new char[1024*100];
-						String line = null;
-						//逐行读取返回的页面
-						int i;
-						while((i=brWeb.read(cbuf)) > 0) {
-							System.out.print(i+",");
-							line = String.valueOf(cbuf);*/
-						//读取完整个页面了，关闭资源
-		                scanner.close();
-						((HttpURLConnection)conn).disconnect();
 						//还是没找到下一页的话，退出循环
 						if(nextFlag == false){
 							break;
@@ -135,6 +129,6 @@ public class ArticleScanThread implements Runnable {
 			}
 		}
 		threadNum--;
-		System.out.println("解析器关闭--------------------->当前运行的帖子解析器有" + threadNum + "个");
+		System.out.println(new Date() + "解析器关闭--------------------->当前运行的帖子解析器有" + threadNum + "个");
 	}
 }
