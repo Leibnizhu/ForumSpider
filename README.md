@@ -1,5 +1,5 @@
 # ForumSpider
-***
+
 ##简介
 &nbsp;&nbsp;&nbsp;&nbsp;这是一个简单的抓取论坛指定帖子里所有照片的小Java爬虫。
 
