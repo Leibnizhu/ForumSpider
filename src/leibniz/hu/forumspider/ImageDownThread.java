@@ -28,12 +28,17 @@ public class ImageDownThread implements Runnable {
 		
 		try {
 			URLConnection conn = new URL(imageURL).openConnection();
-			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
-			conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-			conn.setRequestProperty("Referer", "http://www.dedeni.com/artlist/7.html");
+			SpiderUtils.initReqHeader(conn, "http://www.dedeni.com/artlist/7.html");
 			conn.setConnectTimeout(300*1000);
-			inStream = conn.getInputStream();  
-			fs = new FileOutputStream(new File(saveDictionary, filename));  
+			/*conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
+			conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*//*;q=0.8");
+			conn.setRequestProperty("Referer", "http://www.dedeni.com/artlist/7.html");*/
+			inStream = conn.getInputStream(); 
+			File fImg = new File(saveDictionary, filename);
+			if(fImg.exists()){
+				return;
+			}
+			fs = new FileOutputStream(fImg);  
 			
 			byte[] buffer = new byte[1024*64];  
 			int byteread = 0;
@@ -43,7 +48,7 @@ public class ImageDownThread implements Runnable {
 			((HttpURLConnection)conn).disconnect();
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.println(new Date() + "下载图片：" + imageURL + "失败！！");
+			System.out.println(new Date() + " 下载图片：" + imageURL + "失败！！");
 		}  finally{
 			try {
 				if(fs != null){

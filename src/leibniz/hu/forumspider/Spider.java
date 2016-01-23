@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -99,7 +100,7 @@ public class Spider {
 			Pattern pNextLink = Pattern.compile("href=\"(/artlist/.{1,20}?)\".{1,30}?>下一页</a>");
 			//开始遍历帖子
 			while(true){
-				System.out.println("打开新一页帖子列表：" + curURL);
+				System.out.println(new Date() + " 打开新一页帖子列表：" + curURL);
 				
 				//准备请求头部信息
 				URLConnection conn = new URL(curURL).openConnection();
@@ -117,7 +118,7 @@ public class Spider {
                 	bufHtml.append(scanner.nextLine());  
                 }
                 String strHtml = bufHtml.toString();
-                System.out.println("帖子l列表" + curURL + "下载完毕，共计" + strHtml.length() + "字节。开始目标帖子地址……");
+                System.out.println(new Date() + " 帖子列表" + curURL + "下载完毕，共计" + strHtml.length() + "字节。开始目标帖子地址……");
                 //到此读完整个页面，关闭资源
                 scanner.close();
                 ((HttpURLConnection)conn).disconnect();
@@ -149,8 +150,12 @@ public class Spider {
                 Matcher mNextLink = pNextLink.matcher(strHtml);
                 if(mNextLink.find()){
                 	curURL = relativeURLHandler(mNextLink.group(1));
+                } else {
+                	break;
                 }
 			}
+			System.out.println(new Date() + " 找不到下一页，主线程结束，当前帖子列表为：" +curURL);
+			while(true){}
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

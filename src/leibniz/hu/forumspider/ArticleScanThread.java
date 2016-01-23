@@ -35,7 +35,7 @@ public class ArticleScanThread implements Runnable {
 	public void run() {
 		threadNum++;
 		Map<String, String> tempMission = null;
-		System.out.println("解析器启动------------>当前运行的帖子解析器有" + threadNum + "个");
+		System.out.println(new Date() + " 解析器启动------------>当前运行的帖子解析器有" + threadNum + "个");
 		while(true){
 			//待办任务大于帖子解析器数量N倍则开启新线程
 			if(unHandleList.size() / threadNum >= 2){
@@ -66,7 +66,7 @@ public class ArticleScanThread implements Runnable {
 				
 				try {
 					while(true){
-						System.out.println(new Date() + "正在处理帖子《" + tempMission.get("title") + "》的新一页："  + curURL);
+						System.out.println(new Date() + " 正在处理帖子《" + tempMission.get("title") + "》的新一页："  + curURL);
 						nextFlag = false;
 						
 						//准备请求头部信息
@@ -85,7 +85,7 @@ public class ArticleScanThread implements Runnable {
 		                	bufHtml.append(scanner.nextLine());  
 		                }
 		                String strHtml = bufHtml.toString();
-		                System.out.println(new Date() + "帖子《" + tempMission.get("title") + "》下载完毕，共计" + strHtml.length() + "字节。开始解析图片地址……");
+		                System.out.println(new Date() + " 帖子《" + tempMission.get("title") + "》下载完毕，共计" + strHtml.length() + "字节。开始解析图片地址……");
 		                //读取完整个页面了，关闭资源
 		                scanner.close();
 		                ((HttpURLConnection)conn).disconnect();
@@ -129,6 +129,6 @@ public class ArticleScanThread implements Runnable {
 			}
 		}
 		threadNum--;
-		System.out.println(new Date() + "解析器关闭--------------------->当前运行的帖子解析器有" + threadNum + "个");
+		System.out.println(new Date() + " 解析器关闭--------------------->当前运行的帖子解析器有" + threadNum + "个");
 	}
 }
