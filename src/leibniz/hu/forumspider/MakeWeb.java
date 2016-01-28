@@ -1,8 +1,12 @@
 package leibniz.hu.forumspider;
 
-class MakeWeb{
+public class MakeWeb {
+	private String initialURL;
+	private String savepath;
+	private ArrayList<String> keywords = new ArrayList<String>();
 	
-	public static void main(String initPath){
+	public static void main(String[] args){
+			new Spider().readConfig();
 			List<String> imgPaths = new LinkedList<String>();
 			File curDir = new File(initPath);
 			//遍历得到文件夹下所有文件的路径+文件名(List)
