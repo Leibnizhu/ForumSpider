@@ -30,9 +30,6 @@ public class ImageDownThread implements Runnable {
 			URLConnection conn = new URL(imageURL).openConnection();
 			SpiderUtils.initReqHeader(conn, "http://www.dedeni.com/artlist/7.html");
 			conn.setConnectTimeout(300*1000);
-			/*conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
-			conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*//*;q=0.8");
-			conn.setRequestProperty("Referer", "http://www.dedeni.com/artlist/7.html");*/
 			inStream = conn.getInputStream(); 
 			File fImg = new File(saveDictionary, filename);
 			if(fImg.exists()){
