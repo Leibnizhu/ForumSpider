@@ -17,19 +17,19 @@ import org.junit.Test;
 
 public class Spider {
 	private String initialURL;
-	private String savepath;
 	private ArrayList<String> keywords = new ArrayList<String>();
-	private ArrayList<Map<String, String>> unHandleList = new ArrayList<Map<String, String>>();
+	static ArrayList<Map<String, String>> unHandleList = new ArrayList<Map<String, String>>();
+	static ArrayList<Map<String, String>> imageDownList = new ArrayList<Map<String, String>>();
 	
 	/**
 	 * 从spider.cfg.xml文件中读取爬虫的配置
 	 */
-	@SuppressWarnings("unchecked")
+	//@SuppressWarnings("unchecked")
 	private void readConfig(){
-		Map<String, Object> config = SpiderUtils.readConfig();
-		initialURL = (String) config.get("initialURL");
-		savepath = (String) config.get("savepath");
-		keywords = (ArrayList<String>) config.get("keywords");
+		SpiderUtils.readConfig();
+		initialURL =SpiderUtils.initialURL;
+		keywords = SpiderUtils.keywords;
+		
 	}
 	
 	private String relativeURLHandler(String relativeURL){
@@ -61,10 +61,6 @@ public class Spider {
 				URLConnection conn = new URL(curURL).openConnection();
 				SpiderUtils.initReqHeader(conn, initialURL);
 				((HttpURLConnection) conn).setRequestMethod("GET");  
-				/*conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
-				conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,**;q=0.8");
-				conn.setRequestProperty("Connection", "keep-alive");
-				conn.setRequestProperty("Referer", initialURL);*/
 				
 				//先直接读取整个页面
 				StringBuffer bufHtml = new StringBuffer();
@@ -93,9 +89,11 @@ public class Spider {
                 			}
                 			//如果帖子分析器的线程不够，则开启种子线程
                 			while(ArticleScanThread.threadNum <= 5) {
-                				new Thread(new ArticleScanThread(unHandleList, savepath)).start();
+                				new Thread(new ArticleScanThread(), "articleScan-" + ArticleScanThread.threadNum).start();
                 			}
-                			System.out.println("等待处理的帖子还有：" + unHandleList.size() + " 个");
+                			if(unHandleList.size()%10 == 0){
+                				System.out.println("等待处理的帖子还有：" + unHandleList.size() + " 个");
+                			}
                 			//跳出匹配关键词的循环
                 			break;
                 		}

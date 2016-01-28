@@ -12,8 +12,7 @@ import java.util.Map;
 public class MakeWeb {
 	public static void main(String[] args){
 		//获取配置信息
-		Map<String, Object> config = SpiderUtils.readConfig();
-		String savepath = (String) config.get("savepath");
+		String savepath = SpiderUtils.savepath;
 		//用于保存遍历到的所有图片文件
 		List<String> imgPaths = new LinkedList<String>();
 		File curDir = new File(savepath);

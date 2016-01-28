@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -17,6 +15,10 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class SpiderUtils {
+	public static String initialURL = null;
+	public static String savepath = null;
+	public static ArrayList<String> keywords = new ArrayList<String>();
+	
 	public static void initReqHeader(URLConnection conn, String refURL){
 		conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
 		conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
@@ -24,12 +26,7 @@ public class SpiderUtils {
 		conn.setRequestProperty("Referer", refURL);
 	}
 	
-	public static Map<String, Object> readConfig(){
-		HashMap<String, Object> config = new HashMap<String, Object>();
-		String initialURL = null;
-		String savepath = null;
-		ArrayList<String> keywords = new ArrayList<String>();
-		
+	public static void readConfig(){
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder db = dbf.newDocumentBuilder();
@@ -60,10 +57,6 @@ public class SpiderUtils {
 					savepath = tempNode.getTextContent();
 				}
 			}
-			//将读取到的结果保存到Map中
-			config.put("initialURL", initialURL);
-			config.put("savepath", savepath);
-			config.put("keywords", keywords);
 			if(null != savepath){
 				File saveDictionary = new File(savepath);
 				if(!saveDictionary.exists()){
@@ -77,6 +70,5 @@ public class SpiderUtils {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return config;
 	}
 }

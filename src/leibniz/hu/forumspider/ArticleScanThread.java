@@ -6,8 +6,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -15,36 +15,39 @@ import java.util.regex.Pattern;
 
 
 public class ArticleScanThread implements Runnable {
-	private ArrayList<Map<String, String>> unHandleList;
+	//private ArrayList<Map<String, String>> unHandleList;
 	//帖子URL
 	private String articleURL;
 	//保存的文件夹路径（不包含帖子标题的子文件夹）
-	private String originDictionary;
+	private String originDictionary = SpiderUtils.savepath;
 	//保存的文件夹路径（包含帖子标题的子文件夹）
 	private String saveDictionary;
 	//统计帖子分析线程数
-	public static int threadNum= 0;
+	static int threadNum= 0;
 	
+	/*
 	public ArticleScanThread(ArrayList<Map<String, String>> unHandleList, String dictionary) {
 		super();
-		this.originDictionary = dictionary;
-		this.unHandleList = unHandleList;
-	}
+		//this.originDictionary = dictionary;
+		//this.unHandleList = unHandleList;
+	}*/
 	
 	@Override
 	public void run() {
 		threadNum++;
 		Map<String, String> tempMission = null;
-		System.out.println(new Date() + " 解析器启动------------>当前运行的帖子解析器有" + threadNum + "个");
+		if(threadNum%10 == 0){
+			System.out.println(new Date() + " 解析器启动------------>当前运行的帖子解析器有" + threadNum + "个");
+		}
 		while(true){
 			//待办任务大于帖子解析器数量N倍则开启新线程
-			if(unHandleList.size() / threadNum >= 2){
-				new Thread(new ArticleScanThread(unHandleList, originDictionary)).start();
+			if(Spider.unHandleList.size() / threadNum >= 2){
+				new Thread(new ArticleScanThread(), "articleScan-" + ArticleScanThread.threadNum).start();
 			}
-			if(unHandleList.size() > 0){
+			if(Spider.unHandleList.size() > 0){
 				//synchronized (unHandleList) {
 					//每次从待处理队列中取出一个任务
-					tempMission = unHandleList.remove(0);
+					tempMission = Spider.unHandleList.remove(0);
 				//}
 				//得到新任务的url及标题（保存路径）
 				this.articleURL = tempMission.get("url");
@@ -73,10 +76,6 @@ public class ArticleScanThread implements Runnable {
 						URLConnection conn = new URL(curURL).openConnection();
 						SpiderUtils.initReqHeader(conn, articleURL);
 						((HttpURLConnection) conn).setRequestMethod("GET");
-						/*conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
-						conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*//*;q=0.8");
-						conn.setRequestProperty("Connection", "keep-alive");
-						conn.setRequestProperty("Referer", articleURL);*/
 						
 						//先直接读取整个页面
 						StringBuffer bufHtml = new StringBuffer();
@@ -98,7 +97,21 @@ public class ArticleScanThread implements Runnable {
 		                	if(!saveDict.exists()){
 		                		saveDict.mkdirs();
 		                	}
-		                	new Thread(new ImageDownThread(mImageLink.group(1), saveDictionary)).start();
+		                	//new Thread(new ImageDownThread(mImageLink.group(1), saveDictionary)).start();
+		                	//放入待处理队列
+                			Map<String, String> tempResult = new HashMap<String, String>(); 
+                			tempResult.put("imageDownURL", mImageLink.group(1));
+                			tempResult.put("saveDictionary", saveDictionary);
+                			synchronized (Spider.imageDownList) {
+                				Spider.imageDownList.add(tempResult);
+                			}
+                			//如果帖子分析器的线程不够，则开启种子线程
+                			while(ImageDownThread.threadNum <= 15) {
+                				new Thread(new ImageDownThread(), "imageDown-" + ImageDownThread.threadNum).start();
+                			}
+                			if(Spider.imageDownList.size()%10 == 0){
+                				System.out.println("等待下载的照片还有：" + Spider.imageDownList.size() + " 个");
+                			}
 		                }
 		                
 		                //匹配到下一页的链接
@@ -123,12 +136,14 @@ public class ArticleScanThread implements Runnable {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			if(unHandleList.size() / threadNum < 0.8 && threadNum > 5){
+			if(Spider.unHandleList.size() / threadNum < 0.8 && threadNum > 5){
 				//待办任务小于帖子解析器数量M倍则关闭当前线程
 				break;
 			}
 		}
 		threadNum--;
-		System.out.println(new Date() + " 解析器关闭--------------------->当前运行的帖子解析器有" + threadNum + "个");
+		if(threadNum%10 == 0){
+			System.out.println(new Date() + " 解析器关闭--------------------->当前运行的帖子解析器有" + threadNum + "个");
+		}
 	}
 }
