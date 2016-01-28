@@ -33,7 +33,7 @@ public class Spider {
 	/**
 	 * 从spider.cfg.xml文件中读取爬虫的配置
 	 */
-	private void readConfig(){
+	void readConfig(){
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder db = dbf.newDocumentBuilder();

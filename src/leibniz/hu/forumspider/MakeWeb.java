@@ -1,34 +1,57 @@
 package leibniz.hu.forumspider;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.LinkedList;
+import java.util.List;
+
 public class MakeWeb {
-	private String initialURL;
-	private String savepath;
-	private ArrayList<String> keywords = new ArrayList<String>();
-	
 	public static void main(String[] args){
-			new Spider().readConfig();
 			List<String> imgPaths = new LinkedList<String>();
-			File curDir = new File(initPath);
-			//±éÀúµÃµ½ÎÄ¼ş¼ĞÏÂËùÓĞÎÄ¼şµÄÂ·¾¶+ÎÄ¼şÃû(List)
+			String savepath = "/media/leibniz/OLD/StackFlow/SpiderDown";
+			File curDir = new File(savepath);
+			//éå†å¾—åˆ°æ–‡ä»¶å¤¹ä¸‹æ‰€æœ‰æ–‡ä»¶çš„è·¯å¾„+æ–‡ä»¶å(List)
 			ergodicSubDir(imgPaths, curDir);
-			//¿ªÊ¼Éú³ÉHTML
-			PrintWriter prHtml = new PrintWriter(new BufferedWriter(new FileWriter(initPath + "index.html", false)));
-			prHtml.println("<html><head><title>" + initPath + "</title></head><body align=center>");
-			for(String imgPath: imgPaths){
-				prHtml.println("<img src=\"" + imgPath + "\"/>")£»
+			
+			//å¼€å§‹ç”ŸæˆHTML
+			PrintWriter prHtml=null;
+			for(int page = 0; page < imgPaths.size()/200 + 1; page++){
+				try {
+					prHtml = new PrintWriter(new BufferedWriter(new FileWriter(savepath + "/index-" + page + ".html", false)));
+					prHtml.println("<html><head><title>" + savepath + "</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" /></head><body align=center>");
+					int limit = (page == imgPaths.size()/200)?(imgPaths.size()%200):200;
+					//System.out.println(limit);
+					for(int i = 0; i < limit; i++){
+						String absolutePath = imgPaths.get(page*200+i);
+						prHtml.println("<img src=\"" + absolutePath.replaceAll(savepath + "/", "") + "\"/><br/>");
+					}
+					prHtml.println("<a href=\"index-" + (page-1) + ".html\">ä¸Šä¸€é¡µ</a>");
+					prHtml.println("<a href=\"index-" + (page+1) + ".html\">ä¸‹ä¸€é¡µ</a>");
+					prHtml.println("</body></html>");
+					prHtml.flush();
+				} catch (IOException e) {
+				} finally {
+					prHtml.close();
+				}
 			}
-			prHtml.println("</body></html>");
 	}
 	
 	public static void ergodicSubDir(List<String> imgPaths, File curDir){
-		Files[] subFiles = curDir.listFiles();
+		File[] subFiles = curDir.listFiles();
 		for(File subFile: subFiles){
-			if(subFile.isDictionary()){
-				//ÊÇÄ¿Â¼£¬±éÀúÖ®
+			if(subFile.isDirectory()){
+				//æ˜¯ç›®å½•ï¼Œéå†ä¹‹
 				ergodicSubDir(imgPaths, subFile);
 			} else if(subFile.isFile()) {
-				//ÊÇÎÄ¼ş£¬Ìí¼ÓÖ®
-				imgPaths.add(subFile.getCanonicalPath());
+				//æ˜¯æ–‡ä»¶ï¼Œæ·»åŠ ä¹‹
+				try {
+					imgPaths.add(subFile.getCanonicalPath());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
