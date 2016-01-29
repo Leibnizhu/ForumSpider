@@ -42,7 +42,7 @@ public class ArticleScanThread implements Runnable {
 		while(true){
 			//待办任务大于帖子解析器数量N倍则开启新线程
 			if(Spider.unHandleList.size() / threadNum >= 2){
-				new Thread(new ArticleScanThread(), "articleScan-" + ArticleScanThread.threadNum).start();
+				new Thread(new ArticleScanThread(), "articleScan-" + Math.random()).start();
 			}
 			if(Spider.unHandleList.size() > 0){
 				//synchronized (unHandleList) {
@@ -102,15 +102,15 @@ public class ArticleScanThread implements Runnable {
                 			Map<String, String> tempResult = new HashMap<String, String>(); 
                 			tempResult.put("imageDownURL", mImageLink.group(1));
                 			tempResult.put("saveDictionary", saveDictionary);
-                			synchronized (Spider.imageDownList) {
+                			//synchronized (Spider.imageDownList) {
                 				Spider.imageDownList.add(tempResult);
-                			}
+                			//}
                 			//如果帖子分析器的线程不够，则开启种子线程
                 			while(ImageDownThread.threadNum <= 15) {
-                				new Thread(new ImageDownThread(), "imageDown-" + ImageDownThread.threadNum).start();
+                				new Thread(new ImageDownThread(), "imageDown-" + Math.random()).start();
                 			}
                 			if(Spider.imageDownList.size()%10 == 0){
-                				System.out.println("等待下载的照片还有：" + Spider.imageDownList.size() + " 个");
+                				System.out.println("等待下载的照片还有：" + Spider.imageDownList.size() + " 个" + ImageDownThread.threadNum);
                 			}
 		                }
 		                

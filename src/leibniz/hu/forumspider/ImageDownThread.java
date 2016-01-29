@@ -33,13 +33,13 @@ public class ImageDownThread implements Runnable {
 		while(true){
 			//待办任务大于帖子解析器数量N倍则开启新线程
 			if(Spider.imageDownList.size() / threadNum >= 1.5){
-				new Thread(new ImageDownThread(), "imageDown-" + ImageDownThread.threadNum).start();
+				new Thread(new ImageDownThread(), "imageDown-" + Math.random()).start();
 			}
 			if(Spider.imageDownList.size() > 0){
-				synchronized (Spider.imageDownList) {
+				//synchronized (Spider.imageDownList) {
 					//每次从待处理队列中取出一个任务
 					tempMission = Spider.imageDownList.remove(0);
-				}
+				//}
 				//得到新任务的url及标题（保存路径）
 				this.imageURL = tempMission.get("imageDownURL");
 				this.saveDictionary = tempMission.get("saveDictionary");
@@ -84,7 +84,7 @@ public class ImageDownThread implements Runnable {
 				}
 			}
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(50000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

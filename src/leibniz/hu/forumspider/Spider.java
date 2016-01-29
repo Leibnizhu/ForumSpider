@@ -89,7 +89,7 @@ public class Spider {
                 			}
                 			//如果帖子分析器的线程不够，则开启种子线程
                 			while(ArticleScanThread.threadNum <= 5) {
-                				new Thread(new ArticleScanThread(), "articleScan-" + ArticleScanThread.threadNum).start();
+                				new Thread(new ArticleScanThread(), "articleScan-"+ Math.random()).start();
                 			}
                 			if(unHandleList.size()%10 == 0){
                 				System.out.println("等待处理的帖子还有：" + unHandleList.size() + " 个");
