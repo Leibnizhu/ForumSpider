@@ -55,6 +55,9 @@ public class SpiderUtils {
 				//找到下载保存路径的节点，保存到对应属性中
 				if("savepath".equals(tempNodeName)){
 					savepath = tempNode.getTextContent();
+					if(savepath.endsWith("/") || savepath.endsWith("\\")){
+						savepath = savepath.substring(0, savepath.length() -1);
+					}
 				}
 			}
 			if(null != savepath){
