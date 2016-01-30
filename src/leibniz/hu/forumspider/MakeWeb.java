@@ -49,6 +49,7 @@ public class MakeWeb {
 				prHtml.println("<a href=\"index-" + (page+1) + ".html\">下一页</a>");
 				prHtml.println("</body></html>");
 				prHtml.flush();
+				prHtml.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			} finally {
