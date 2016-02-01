@@ -29,7 +29,6 @@ public class Spider {
 		SpiderUtils.readConfig();
 		initialURL =SpiderUtils.initialURL;
 		keywords = SpiderUtils.keywords;
-		
 	}
 	
 	private String relativeURLHandler(String relativeURL){
@@ -53,6 +52,8 @@ public class Spider {
 			Pattern pArticleLink = Pattern.compile("<a\\s*href=\"(/arthtml/.+?)\".+?>(.+?)</a>");
 			// e.g. href="/artlist/7-233.html" class="pagelink_a">下一页</a>
 			Pattern pNextLink = Pattern.compile("href=\"(/artlist/.{1,20}?)\".{1,30}?>下一页</a>");
+			new Thread(new ThreadManager()).start();;
+			
 			//开始遍历帖子
 			while(true){
 				System.out.println(new Date() + " 打开新一页帖子列表：" + curURL);
@@ -84,16 +85,16 @@ public class Spider {
                 			Map<String, String> tempResult = new HashMap<String, String>(); 
                 			tempResult.put("title", mArticleLink.group(2));
                 			tempResult.put("url", relativeURLHandler(mArticleLink.group(1)));
-                			synchronized (unHandleList) {
+                			//synchronized (unHandleList) {
                 				unHandleList.add(tempResult);
-                			}
+                			//}
                 			//如果帖子分析器的线程不够，则开启种子线程
-                			while(ArticleScanThread.threadNum <= 5) {
+                			/*while(ArticleScanThread.threadNum <= 5) {
                 				new Thread(new ArticleScanThread(), "articleScan-"+ Math.random()).start();
-                			}
-                			if(unHandleList.size()%10 == 0){
+                			}*/
+                			/*if(unHandleList.size()%10 == 0){
                 				System.out.println("等待处理的帖子还有：" + unHandleList.size() + " 个");
-                			}
+                			}*/
                 			//跳出匹配关键词的循环
                 			break;
                 		}
