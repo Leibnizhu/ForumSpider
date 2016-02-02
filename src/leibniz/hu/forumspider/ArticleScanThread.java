@@ -30,23 +30,11 @@ public class ArticleScanThread implements Runnable {
 	@Override
 	public void run() {
 		Map<String, String> tempMission = null;
-		/*ArticleScanThread.threadNum++;
-		if(ArticleScanThread.threadNum%10 == 0){
-			System.out.println(new Date() + " 解析器启动------------>当前运行的帖子解析器有" + ArticleScanThread.threadNum + "个");
-		}*/
 		while(true){
-			//待办任务大于帖子解析器数量N倍则开启新线程
-			/*if(Spider.unHandleList.size() / ArticleScanThread.threadNum >= 2){
-				new Thread(new ArticleScanThread(), "articleScan-" + Math.random()).start();
-			}*/
-			//stopable = false;
 			ThreadManager.managerGuard();
 			
 			if(Spider.unHandleList.size() > 0){
-				//synchronized (Spider.unHandleList) {
-					//每次从待处理队列中取出一个任务
-					tempMission = Spider.unHandleList.remove(0);
-				//}
+				tempMission = Spider.unHandleList.remove(0);
 				//得到新任务的url及标题（保存路径）
 				this.articleURL = tempMission.get("url");
 				this.saveDictionary = originDictionary +"/" + tempMission.get("title");
@@ -83,7 +71,6 @@ public class ArticleScanThread implements Runnable {
 		                }
 		                String strHtml = bufHtml.toString();
 		                System.out.println(new Date() + " 帖子《" + tempMission.get("title") + "》下载完毕，共计" + strHtml.length() + "字节。开始解析图片地址……");
-		                //new ThreadManager().ThreadController();
 		                //读取完整个页面了，关闭资源
 		                scanner.close();
 		                ((HttpURLConnection)conn).disconnect();
@@ -96,21 +83,11 @@ public class ArticleScanThread implements Runnable {
 		                	if(!saveDict.exists()){
 		                		saveDict.mkdirs();
 		                	}
-		                	//new Thread(new ImageDownThread(mImageLink.group(1), saveDictionary)).start();
 		                	//放入待处理队列
                 			Map<String, String> tempResult = new HashMap<String, String>(); 
                 			tempResult.put("imageDownURL", mImageLink.group(1));
                 			tempResult.put("saveDictionary", saveDictionary);
-                			//synchronized (Spider.imageDownList) {
-                				Spider.imageDownList.add(tempResult);
-                			//}
-                			//如果照片下载器的线程不够，则开启种子线程
-                			/*while(ImageDownThread.threadNum <= 20) {
-                				new Thread(new ImageDownThread(), "imageDown-" + Math.random()).start();
-                			}*/
-                			/*if(Spider.imageDownList.size()%10 == 0){
-                				System.out.println("等待下载的照片还有：" + Spider.imageDownList.size() + " 个" + ImageDownThread.threadNum);
-                			}*/
+                			Spider.imageDownList.add(tempResult);
 		                }
 		                
 		                //匹配到下一页的链接
@@ -130,20 +107,10 @@ public class ArticleScanThread implements Runnable {
 					e.printStackTrace();
 				}
 			}
-			//stopable = true;
 			try {
 				Thread.sleep(3000);
 			} catch (InterruptedException e) {
-				//e.printStackTrace();
 			}
-			/*if(Spider.unHandleList.size() / ArticleScanThread.threadNum < 0.8 && ArticleScanThread.threadNum > 5){
-				//待办任务小于帖子解析器数量M倍则关闭当前线程
-				break;
-			}*/
 		}
-		/*ArticleScanThread.threadNum--;
-		if(ArticleScanThread.threadNum%10 == 0){
-			System.out.println(new Date() + " 解析器关闭--------------------->当前运行的帖子解析器有" + ArticleScanThread.threadNum + "个");
-		}*/
 	}
 }
