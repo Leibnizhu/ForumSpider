@@ -67,47 +67,38 @@ public class Spider {
 				//先直接读取整个页面
 				StringBuffer bufHtml = new StringBuffer();
 				Scanner scanner = new Scanner(conn.getInputStream());  
-                while (scanner.hasNextLine()) {  
-                	bufHtml.append(scanner.nextLine());  
-                }
-                String strHtml = bufHtml.toString();
-                System.out.println(new Date() + " 帖子列表" + curURL + "下载完毕，共计" + strHtml.length() + "字节。开始目标帖子地址……");
-                //到此读完整个页面，关闭资源
-                scanner.close();
-                ((HttpURLConnection)conn).disconnect();
-                
-                Matcher mArticleLink = pArticleLink.matcher(strHtml);
-                //用while遍历整个网页所有的匹配的地址
-                while(mArticleLink.find()){
-                	//判断标题是否符合关键词
-                	for(String keyword: keywords){
-                		if(mArticleLink.group(2).contains(keyword)){
-                			//放入待处理队列
-                			Map<String, String> tempResult = new HashMap<String, String>(); 
-                			tempResult.put("title", mArticleLink.group(2));
-                			tempResult.put("url", relativeURLHandler(mArticleLink.group(1)));
-                			//synchronized (unHandleList) {
-                				unHandleList.add(tempResult);
-                			//}
-                			//如果帖子分析器的线程不够，则开启种子线程
-                			/*while(ArticleScanThread.threadNum <= 5) {
-                				new Thread(new ArticleScanThread(), "articleScan-"+ Math.random()).start();
-                			}*/
-                			/*if(unHandleList.size()%10 == 0){
-                				System.out.println("等待处理的帖子还有：" + unHandleList.size() + " 个");
-                			}*/
-                			//跳出匹配关键词的循环
-                			break;
-                		}
-                	}//break跳出到这里，准备寻找下一个符合帖子链接正则的
-                }
-                //匹配下一页链接
-                Matcher mNextLink = pNextLink.matcher(strHtml);
-                if(mNextLink.find()){
-                	curURL = relativeURLHandler(mNextLink.group(1));
-                } else {
-                	break;
-                }
+		                while (scanner.hasNextLine()) {  
+		                	bufHtml.append(scanner.nextLine());  
+		                }
+		                String strHtml = bufHtml.toString();
+		                System.out.println(new Date() + " 帖子列表" + curURL + "下载完毕，共计" + strHtml.length() + "字节。开始目标帖子地址……");
+		                //到此读完整个页面，关闭资源
+		                scanner.close();
+		                ((HttpURLConnection)conn).disconnect();
+		                
+		                Matcher mArticleLink = pArticleLink.matcher(strHtml);
+		                //用while遍历整个网页所有的匹配的地址
+		                while(mArticleLink.find()){
+		                	//判断标题是否符合关键词
+		                	for(String keyword: keywords){
+		                		if(mArticleLink.group(2).contains(keyword)){
+		                			//放入待处理队列
+		                			Map<String, String> tempResult = new HashMap<String, String>(); 
+		                			tempResult.put("title", mArticleLink.group(2));
+		                			tempResult.put("url", relativeURLHandler(mArticleLink.group(1)));
+		                			unHandleList.add(tempResult);
+		                			//跳出匹配关键词的循环
+		                			break;
+		                		}
+		                	}//break跳出到这里，准备寻找下一个符合帖子链接正则的
+		                }
+		                //匹配下一页链接
+		                Matcher mNextLink = pNextLink.matcher(strHtml);
+		                if(mNextLink.find()){
+		                	curURL = relativeURLHandler(mNextLink.group(1));
+		                } else {
+		                	break;
+		                }
 			}
 			System.out.println(new Date() + " 找不到下一页，主线程结束，当前帖子列表为：" +curURL);
 			while(true){}
