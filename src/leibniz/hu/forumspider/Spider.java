@@ -52,11 +52,12 @@ public class Spider {
 			Pattern pArticleLink = Pattern.compile("<a\\s*href=\"(/arthtml/.+?)\".+?>(.+?)</a>");
 			// e.g. href="/artlist/7-233.html" class="pagelink_a">下一页</a>
 			Pattern pNextLink = Pattern.compile("href=\"(/artlist/.{1,20}?)\".{1,30}?>下一页</a>");
-			new Thread(new ThreadManager()).start();;
+			new Thread(new ThreadManager(), "manager-"+ (new Random()).nextInt()).start();
 			
 			//开始遍历帖子
 			while(true){
 				System.out.println(new Date() + " 打开新一页帖子列表：" + curURL);
+				ThreadManager.managerGuard();
 				
 				//准备请求头部信息
 				URLConnection conn = new URL(curURL).openConnection();

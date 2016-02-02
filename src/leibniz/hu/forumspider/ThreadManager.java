@@ -82,4 +82,26 @@ public class ThreadManager implements Runnable{
 			}
 		}
 	}
+	
+	//判断是否还有ThreadManager进程
+	public static boolean isManagerDie(){
+		ThreadGroup currentGroup = Thread.currentThread().getThreadGroup();
+		int threadNum = currentGroup.activeCount();
+		Thread[] threadList = new Thread[threadNum];
+		currentGroup.enumerate(threadList);
+		
+		//遍历
+		for (int i = 0; i < threadNum; i++) {
+			if(threadList[i].getName().startsWith("manager")){
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public static void managerGuard(){
+		if(ThreadManager.isManagerDie()){
+			new Thread(new ThreadManager(), "manager-"+ (new Random()).nextInt()).start();
+		}
+	}
 }

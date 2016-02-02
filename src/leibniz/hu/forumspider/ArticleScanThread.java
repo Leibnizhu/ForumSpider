@@ -40,6 +40,8 @@ public class ArticleScanThread implements Runnable {
 				new Thread(new ArticleScanThread(), "articleScan-" + Math.random()).start();
 			}*/
 			//stopable = false;
+			ThreadManager.managerGuard();
+			
 			if(Spider.unHandleList.size() > 0){
 				//synchronized (Spider.unHandleList) {
 					//每次从待处理队列中取出一个任务
