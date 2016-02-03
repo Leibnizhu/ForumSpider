@@ -13,7 +13,7 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-//import org.junit.Test;
+import org.junit.Test;
 
 public class Spider {
 	//初始化配置
@@ -43,7 +43,7 @@ public class Spider {
 		return p;
 	}
 		
-	//@Test
+	@Test
 	public void startSpider(){
 		readConfig();
 		try {
@@ -53,7 +53,8 @@ public class Spider {
 			Pattern pArticleLink = Pattern.compile("<a\\s*href=\"(/arthtml/.+?)\".+?>(.+?)</a>");
 			// e.g. href="/artlist/7-233.html" class="pagelink_a">下一页</a>
 			Pattern pNextLink = Pattern.compile("href=\"(/artlist/.{1,20}?)\".{1,30}?>下一页</a>");
-						
+			new Thread(new ThreadManager(), "manager-"+ (new Random()).nextInt()).start();
+			
 			//开始遍历帖子
 			while(true){
 				System.out.println(new Date() + " 打开新一页帖子列表：" + curURL);
@@ -85,7 +86,7 @@ public class Spider {
 		                			//放入待处理队列
 		                			Map<String, String> tempResult = new HashMap<String, String>(); 
 		                			tempResult.put("title", mArticleLink.group(2));
-		                			tempResult.put("url", SpiderUtils.relativeURLHandler(mArticleLink.group(1)));
+		                			tempResult.put("url", SpiderUtils.relativeURLHandler(initialURL, mArticleLink.group(1)));
 		                			unHandleList.add(tempResult);
 		                			//跳出匹配关键词的循环
 		                			break;
@@ -95,7 +96,7 @@ public class Spider {
 		                //匹配下一页链接
 		                Matcher mNextLink = pNextLink.matcher(strHtml);
 		                if(mNextLink.find()){
-		                	curURL = SpiderUtils.relativeURLHandler(mNextLink.group(1));
+		                	curURL = SpiderUtils.relativeURLHandler(initialURL, mNextLink.group(1));
 		                } else {
 		                	break;
 		                }
@@ -110,7 +111,6 @@ public class Spider {
 	}
 	
 	public static void main(String[] args){
-		ThreadManager.managerGuard();
 		Spider.getSpiderInstance().startSpider();
 	}
 }
