@@ -30,7 +30,7 @@ public class SpiderUtils {
 	}
 	
 	//处理相对URl路径，获取绝对URL路径
-	private static String relativeURLHandler(String initialURL, String relativeURL){
+	public static String relativeURLHandler(String relativeURL){
 		String rootURL =  initialURL.substring(0, initialURL.indexOf("/", 7));
 		String curParentURL  = initialURL.substring(0, initialURL.lastIndexOf("/"));
 		if(relativeURL.startsWith("/")){
@@ -48,13 +48,16 @@ public class SpiderUtils {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			//this.getClass().getClassLoader();
+			System.out.println(ClassLoader.getSystemResource("spider.cfg.xml").toString());
 			Document document = db.parse(ClassLoader.getSystemResource("spider.cfg.xml").toString());
 			
 			//遍历所有节点
 			NodeList allNodes = document.getChildNodes().item(0).getChildNodes();
+			System.out.println(allNodes.getLength());
 			for(int j = 0; j < allNodes.getLength(); j++){
 				Node tempNode = allNodes.item(j);
 				String tempNodeName = tempNode.getNodeName();
+				//System.out.println(tempNodeName);
 				//找到初始url的节点，放入类的属性中
 				if("starturl".equals(tempNodeName)){
 					initialURL = tempNode.getTextContent();
@@ -92,7 +95,7 @@ public class SpiderUtils {
 				}
 			}
 			createSaveDict();
-			System.out.println(nextPage + "---" + nextList + "---" + articleInList);
+			System.out.println(savepath + "---" + nextPage + "---" + nextList + "---" + articleInList);
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
 		} catch (SAXException e) {

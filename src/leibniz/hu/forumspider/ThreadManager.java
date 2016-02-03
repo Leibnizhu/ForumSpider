@@ -101,7 +101,7 @@ public class ThreadManager implements Runnable{
 	
 	public static void managerGuard(){
 		if(ThreadManager.isManagerDie()){
-			system.out.println("------------------------>ThreadManager挂掉了，重新启动一个....");
+			System.out.println("------------------------>ThreadManager挂掉了，重新启动一个....");
 			new Thread(new ThreadManager(), "manager-"+ (new Random()).nextInt()).start();
 		}
 	}
