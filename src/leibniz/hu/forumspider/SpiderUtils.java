@@ -30,7 +30,7 @@ public class SpiderUtils {
 	}
 	
 	//处理相对URl路径，获取绝对URL路径
-	private static String relativeURLHandler(String initialURL, String relativeURL){
+	public static String relativeURLHandler(String initialURL, String relativeURL){
 		String rootURL =  initialURL.substring(0, initialURL.indexOf("/", 7));
 		String curParentURL  = initialURL.substring(0, initialURL.lastIndexOf("/"));
 		if(relativeURL.startsWith("/")){
