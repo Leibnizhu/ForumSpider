@@ -18,9 +18,9 @@ public class ImageDownThread implements Runnable {
 	public void run() {
 		Map<String, String> tempMission = null;
 		while(true){
-			if(Spider.imageDownList.size() > 0){
+			if(Spider.getSpiderInstance().getImageDownList().size() > 0){
 				//每次从待处理队列中取出一个任务
-				tempMission = Spider.imageDownList.remove(0);
+				tempMission = Spider.getSpiderInstance().getImageDownList().remove(0);
 				//得到新任务的url及标题（保存路径）
 				this.imageURL = tempMission.get("imageDownURL");
 				this.saveDictionary = tempMission.get("saveDictionary");

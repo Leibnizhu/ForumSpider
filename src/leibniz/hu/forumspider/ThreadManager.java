@@ -27,17 +27,17 @@ public class ThreadManager implements Runnable{
 			}
 			artcScanThreadNum = artcScanList.size();
 			imgDownThreadNum = imgDownList.size();
-			System.out.println("帖子解析器：" + artcScanThreadNum + "个；待处理帖子：" + Spider.unHandleList.size() + "个。"
-									+ "图片下载器：" + imgDownThreadNum + "个；待下载图片：。" + Spider.imageDownList.size() + "张。");
+			System.out.println("帖子解析器：" + artcScanThreadNum + "个；待处理帖子：" + Spider.getSpiderInstance().getUnHandleList().size() + "个。"
+									+ "图片下载器：" + imgDownThreadNum + "个；待下载图片：。" + Spider.getSpiderInstance().getImageDownList().size() + "张。");
 			
 			//根据待处理帖子数和帖子分析器数量动态分配线程数量
-			while(artcScanThreadNum <= 10 || (Spider.unHandleList.size() / artcScanThreadNum >= 1.5)){
+			while(artcScanThreadNum <= 10 || (Spider.getSpiderInstance().getUnHandleList().size() / artcScanThreadNum >= 1.5)){
 				Thread temp = new Thread(new ArticleScanThread(), "articleScan-"+ (new Random()).nextInt());
 				temp.start();
 				artcScanList.add(temp);
 				artcScanThreadNum = artcScanList.size();
 			}
-			while(artcScanThreadNum >= 15 && (Spider.unHandleList.size() / artcScanThreadNum <= 0.75)){
+			while(artcScanThreadNum >= 15 && (Spider.getSpiderInstance().getUnHandleList().size() / artcScanThreadNum <= 0.75)){
 				while(true){
 					Thread curArtcScanThread = artcScanList.remove(0);
 					if(Thread.State.TIMED_WAITING == curArtcScanThread.getState()){
@@ -53,13 +53,13 @@ public class ThreadManager implements Runnable{
 			}
 			
 			//根据待下载图片数和图片下载器数量动态分配线程数量
-			while(imgDownThreadNum <= 25 || (Spider.imageDownList.size() / imgDownThreadNum >= 1.5)){
+			while(imgDownThreadNum <= 25 || (Spider.getSpiderInstance().getImageDownList().size() / imgDownThreadNum >= 1.5)){
 				Thread temp = new Thread(new ImageDownThread(), "imageDown-"+ (new Random()).nextInt());
 				temp.start();
 				imgDownList.add(temp);
 				imgDownThreadNum = imgDownList.size();
 			}
-			while(imgDownThreadNum >= 30 && (Spider.imageDownList.size() / imgDownThreadNum <= 0.5)){
+			while(imgDownThreadNum >= 30 && (Spider.getSpiderInstance().getImageDownList().size() / imgDownThreadNum <= 0.5)){
 				while(true){
 					Thread curImgScanThread = imgDownList.remove(0);
 					if(Thread.State.TIMED_WAITING == curImgScanThread.getState()){

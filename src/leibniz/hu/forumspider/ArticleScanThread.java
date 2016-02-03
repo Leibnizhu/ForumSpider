@@ -33,8 +33,8 @@ public class ArticleScanThread implements Runnable {
 		while(true){
 			ThreadManager.managerGuard();
 			
-			if(Spider.unHandleList.size() > 0){
-				tempMission = Spider.unHandleList.remove(0);
+			if(Spider.getSpiderInstance().getUnHandleList().size() > 0){
+				tempMission = Spider.getSpiderInstance().getUnHandleList().remove(0);
 				//得到新任务的url及标题（保存路径）
 				this.articleURL = tempMission.get("url");
 				this.saveDictionary = originDictionary +"/" + tempMission.get("title");
@@ -87,7 +87,7 @@ public class ArticleScanThread implements Runnable {
                 			Map<String, String> tempResult = new HashMap<String, String>(); 
                 			tempResult.put("imageDownURL", mImageLink.group(1));
                 			tempResult.put("saveDictionary", saveDictionary);
-                			Spider.imageDownList.add(tempResult);
+                			Spider.getSpiderInstance().getImageDownList().add(tempResult);
 		                }
 		                
 		                //匹配到下一页的链接

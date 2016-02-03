@@ -16,4 +16,7 @@
 	<!--设置下载的文件的保存路径，请设置为运行的系统的目录路径形式-->
 	<!--同一个帖子的所有照片，将会被下载到以帖子标题命名的子文件夹下-->
 	<savepath>/home/***/download</savepath>
+	<next-page>href="(/arthtml/.{1,20}?)".{1,20}?>下一页&lt;/a&gt;</next-page>
+	<next-list>href="(/artlist/.{1,20}?)".{1,30}?>下一页&lt;/a&gt;</next-list>
+	<article-in-list>&lt;a\s*href="(/arthtml/.+?)".+?>(.+?)&lt;/a&gt;</article-in-list>
 </spider>

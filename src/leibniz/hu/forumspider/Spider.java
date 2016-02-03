@@ -16,32 +16,33 @@ import java.util.regex.Pattern;
 import org.junit.Test;
 
 public class Spider {
+	//初始化配置
 	private String initialURL;
 	private ArrayList<String> keywords = new ArrayList<String>();
-	static ArrayList<Map<String, String>> unHandleList = new ArrayList<Map<String, String>>();
-	static ArrayList<Map<String, String>> imageDownList = new ArrayList<Map<String, String>>();
-	
-	/**
-	 * 从spider.cfg.xml文件中读取爬虫的配置
-	 */
-	//@SuppressWarnings("unchecked")
+	//从spider.cfg.xml文件中读取爬虫的配置
 	private void readConfig(){
 		SpiderUtils.readConfig();
 		initialURL =SpiderUtils.initialURL;
 		keywords = SpiderUtils.keywords;
 	}
 	
-	private String relativeURLHandler(String relativeURL){
-		String rootURL =  initialURL.substring(0, initialURL.indexOf("/", 7));
-		String curParentURL  = initialURL.substring(0, initialURL.lastIndexOf("/"));
-		if(relativeURL.startsWith("/")){
-			//相对于网站根目录的地址
-			return rootURL + relativeURL;
-		} else {
-			return curParentURL + relativeURL;
-		}
+	//待处理帖子和图片队列
+	private static ArrayList<Map<String, String>> unHandleList = new ArrayList<Map<String, String>>();
+	private static ArrayList<Map<String, String>> imageDownList = new ArrayList<Map<String, String>>();
+	public static ArrayList<Map<String, String>> getUnHandleList(){
+		return unHandleList;
+	}
+	public static ArrayList<Map<String, String>> getImageDownList(){
+		return imageDownList;
 	}
 	
+	//Singleton
+	private static Spider p = new Spider();
+	private Spider(){}
+	public static Spider getSpiderInstance(){
+		return p;
+	}
+		
 	@Test
 	public void startSpider(){
 		readConfig();
@@ -85,7 +86,7 @@ public class Spider {
 		                			//放入待处理队列
 		                			Map<String, String> tempResult = new HashMap<String, String>(); 
 		                			tempResult.put("title", mArticleLink.group(2));
-		                			tempResult.put("url", relativeURLHandler(mArticleLink.group(1)));
+		                			tempResult.put("url", SpiderUtils.relativeURLHandler(initialURL, mArticleLink.group(1)));
 		                			unHandleList.add(tempResult);
 		                			//跳出匹配关键词的循环
 		                			break;
@@ -95,7 +96,7 @@ public class Spider {
 		                //匹配下一页链接
 		                Matcher mNextLink = pNextLink.matcher(strHtml);
 		                if(mNextLink.find()){
-		                	curURL = relativeURLHandler(mNextLink.group(1));
+		                	curURL = SpiderUtils.relativeURLHandler(initialURL, mNextLink.group(1));
 		                } else {
 		                	break;
 		                }
@@ -110,6 +111,6 @@ public class Spider {
 	}
 	
 	public static void main(String[] args){
-		new Spider().startSpider();
+		Spider.getSpiderInstance().startSpider();
 	}
 }
