@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -20,17 +24,32 @@ public class SpiderUtils {
 	public static String nextPage = null;
 	public static String nextList = null;
 	public static String articleInList = null;
+	public static String imgAddr = null;
 	public static ArrayList<String> keywords = new ArrayList<String>();
+	private static Map<String,String> cookieMap = new HashMap<String, String>();
 	
 	public static void initReqHeader(URLConnection conn, String refURL){
-		conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36");
-		conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
 		conn.setRequestProperty("Connection", "keep-alive");
-		conn.setRequestProperty("Referer", refURL);
+		conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+		conn.setRequestProperty("Upgrade-Insecure-Requests", "1");
+		conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36");
+		conn.setRequestProperty("Cache-control","no-cache, no-store");
+		conn.setRequestProperty("DNT", "1");
+		if(null != refURL){
+			conn.setRequestProperty("Referer", refURL);
+		}
+		conn.setRequestProperty("Accept-Encoding", "deflate, sdch");
+		conn.setRequestProperty("Accept-Language", "en-US,en;q=0.8,zh-CN;q=0.6,zh;q=0.4");
+		Set<String> cookieKeys = cookieMap.keySet();
+		for(String key:cookieKeys){
+			conn.addRequestProperty("cookie", key + "=" + cookieMap.get(key));
+		}
+		conn.setConnectTimeout(30000);  
+	    conn.setReadTimeout(30000);
 	}
 	
 	//处理相对URl路径，获取绝对URL路径
-	public static String relativeURLHandler(String initialURL, String relativeURL){
+	public static String relativeURLHandler(String relativeURL){
 		String rootURL =  initialURL.substring(0, initialURL.indexOf("/", 7));
 		String curParentURL  = initialURL.substring(0, initialURL.lastIndexOf("/"));
 		if(relativeURL.startsWith("/")){
@@ -39,7 +58,22 @@ public class SpiderUtils {
 		} if(relativeURL.startsWith("http://")){
 			return relativeURL;
 		}else {
-			return curParentURL + relativeURL;
+			return curParentURL + "/" + relativeURL;
+		}
+	}
+	
+	public static void getCookie(URLConnection conn){
+		List<String> listTemp= conn.getHeaderFields().get("Set-Cookie");
+		for(String cookie : listTemp){
+			String strTemp = cookie.split(";")[0];
+			//因为是Map,旧的Cookie会被替代
+			cookieMap.put(strTemp.split("=")[0], strTemp.split("=")[1]);
+		}
+		cookieMap.put("AJSTAT_ok_times", "1");
+		if(null == cookieMap.get("AJSTAT_ok_pages")){
+			cookieMap.put("AJSTAT_ok_pages", "1");
+		} else {
+			cookieMap.put("AJSTAT_ok_pages", String.valueOf((Integer.parseInt(cookieMap.get("AJSTAT_ok_pages")) + 1)));
 		}
 	}
 	
@@ -47,7 +81,6 @@ public class SpiderUtils {
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder db = dbf.newDocumentBuilder();
-			//this.getClass().getClassLoader();
 			Document document = db.parse(ClassLoader.getSystemResource("spider.cfg.xml").toString());
 			
 			//遍历所有节点
@@ -90,9 +123,13 @@ public class SpiderUtils {
 				if("article-in-list".equals(tempNodeName)){
 					articleInList = tempNode.getTextContent();
 				}
+				//找到帖子中图片地址的正则表达式，放入属性
+				if("image-addr".equals(tempNodeName)){
+					imgAddr = tempNode.getTextContent();
+				}
 			}
 			createSaveDict();
-			System.out.println(nextPage + "---" + nextList + "---" + articleInList);
+			System.out.println(nextPage + "\n" + nextList + "\n" + articleInList);
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
 		} catch (SAXException e) {
