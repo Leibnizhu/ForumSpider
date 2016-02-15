@@ -1,15 +1,9 @@
 package leibniz.hu.forumspider;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,21 +61,10 @@ public class Spider {
 			//开始遍历帖子
 			while(true){
 				System.out.println(new Date() + " 打开新一页帖子列表：" + curURL);
-				
-				URLConnection conn = new URL(curURL).openConnection();
-				//准备请求头部信息
-				SpiderUtils.initReqHeader(conn, refURL);
-				((HttpURLConnection) conn).setRequestMethod("GET");
-				//正式发出请求
-				conn.connect();
-				//获取相应中的cookie
-				SpiderUtils.getCookie(conn);
-				
+
 				//先直接读取整个页面
-				String strHtml =  SpiderUtils.downHtml(conn, 0);
+				String strHtml =  SpiderUtils.downHtml(curURL, refURL, 0);
                 System.out.println(new Date() + " 帖子列表" + curURL + "下载完毕，共计" + strHtml.length() + "字节。开始目标帖子地址……");
-                
-                ((HttpURLConnection)conn).disconnect();
                 
                 Matcher mArticleLink = pArticleLink.matcher(strHtml);
                 //用while遍历整个网页所有的匹配的地址
@@ -102,7 +85,6 @@ public class Spider {
                 //匹配下一页链接
                 Matcher mNextLink = pNextLink.matcher(strHtml);
                 if(mNextLink.find()){
-                	System.out.println(mNextLink.group(1));
 					//记录来源页面
                 	refURL = curURL;
                 	curURL = SpiderUtils.relativeURLHandler(mNextLink.group(1).replace("&amp;", "&"));
@@ -113,11 +95,6 @@ public class Spider {
                 }
 			}
 			System.out.println(new Date() + " 找不到下一页，主线程结束，当前帖子列表为：" +curURL);
-			while(true){}
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

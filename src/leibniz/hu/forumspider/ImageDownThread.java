@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -23,7 +24,7 @@ public class ImageDownThread implements Runnable {
 				tempMission = Spider.getSpiderInstance().getImageDownList().remove(0);
 				//得到新任务的url及标题（保存路径）
 				this.imageURL = tempMission.get("imageDownURL");
-				this.saveDictionary = tempMission.get("saveDictionary");
+				this.saveDictionary = tempMission.get("saveDictionary").replaceAll("[#<>/\\]", "");
 				download(0);			
 			}
 			try {
@@ -47,6 +48,8 @@ public class ImageDownThread implements Runnable {
 				File fImg = new File(saveDictionary, filename);
 				if(fImg.exists()){
 					RandomAccessFile raf = new RandomAccessFile(fImg, "r");
+					//通过判断文件结尾是否为0xff 0xd9来判定图片是否下载完整
+					//不完整则重新下载，否则跳过return
 					raf.seek(raf.length()-2);
 					if(raf.read() == 0xff){
 						raf.seek(raf.length()-1);
@@ -67,8 +70,7 @@ public class ImageDownThread implements Runnable {
 				}
 				((HttpURLConnection)conn).disconnect();
 			} catch (IOException e) {
-				//e.printStackTrace();
-				System.out.println(new Date() + " 下载图片：" + imageURL + "失败！！");
+				//先关闭资源再重新尝试，防止开启过多连接
 				try {
 					if(fs != null){
 						fs.close();
@@ -81,6 +83,9 @@ public class ImageDownThread implements Runnable {
 				}
 				//再次尝试
 				tryCnt++;
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e1) {}
 				download(tryCnt);
 			}  finally{
 				try {
@@ -94,6 +99,8 @@ public class ImageDownThread implements Runnable {
 					e.printStackTrace();
 				}
 			}
+		} else {
+			System.out.println(new Date() + " 下载图片：" + imageURL + "失败！！");
 		}
 	}
 }

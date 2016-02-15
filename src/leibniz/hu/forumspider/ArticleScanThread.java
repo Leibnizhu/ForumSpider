@@ -1,14 +1,8 @@
 package leibniz.hu.forumspider;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,6 +31,7 @@ public class ArticleScanThread implements Runnable {
 				this.articleURL = tempMission.get("url");
 				this.saveDictionary = originDictionary +"/" + tempMission.get("title");
 				String curURL = articleURL;
+				String refURL = null;
 				
 				//图片链接的正则表达式
 				Pattern pImageLink = Pattern.compile(imgAddrRegax);
@@ -45,63 +40,41 @@ public class ArticleScanThread implements Runnable {
 				//标识是否有下一页
 				boolean nextFlag ;
 				
-				try {
-					while(true){
-						//System.out.println(new Date() + " 正在处理帖子《" + tempMission.get("title") + "》的新一页："  + curURL);
-						nextFlag = false;
-						
-						//准备请求头部信息
-						URLConnection conn = new URL(curURL).openConnection();
-						SpiderUtils.initReqHeader(conn, curURL);
-						((HttpURLConnection) conn).setRequestMethod("GET");
-						//正式发出请求
-						conn.connect();
-						//获取相应中的cookie
-						SpiderUtils.getCookie(conn);
-						
-						//先直接读取整个页面
-						/* StringBuffer bufHtml = new StringBuffer();
-						Scanner scanner = new Scanner(conn.getInputStream());  
-		                while (scanner.hasNextLine()) {  
-		                	bufHtml.append(scanner.nextLine());  
-		                }
-		                //读取完整个页面了，关闭资源
-		                scanner.close(); */
-		                String strHtml =  SpiderUtils.downHtml(conn, 0);
-		                //System.out.println(new Date() + " 帖子《" + tempMission.get("title") + "》下载完毕，共计" + strHtml.length() + "字节。开始解析图片地址……");
-		                ((HttpURLConnection)conn).disconnect();
-		                
-		                //匹配到图片链接
-		                Matcher mImageLink = pImageLink.matcher(strHtml);
-		                while(mImageLink.find()){
-		                	//创建保存图片的子文件夹
-		                	File saveDict = new File(saveDictionary);
-		                	if(!saveDict.exists()){
-		                		saveDict.mkdirs();
-		                	}
-		                	//放入待处理队列
-                			Map<String, String> tempResult = new HashMap<String, String>(); 
-                			//System.out.println(SpiderUtils.relativeURLHandler(mImageLink.group(1)));
-                			tempResult.put("imageDownURL", SpiderUtils.relativeURLHandler(mImageLink.group(1)));
-                			tempResult.put("saveDictionary", saveDictionary);
-                			Spider.getSpiderInstance().getImageDownList().add(tempResult);
-		                }
-		                
-		                //匹配到下一页的链接
-		                Matcher mNextLink = pNextLink.matcher(strHtml);
-		                if(mNextLink.find()){
-		                	curURL = SpiderUtils.relativeURLHandler(mNextLink.group(1).replace("&amp;", "&"));
-		                	nextFlag = true;
-		                }
-						//还是没找到下一页的话，退出循环
-						if(nextFlag == false){
-							break;
-						}
+				while(true){
+					//System.out.println(new Date() + " 正在处理帖子《" + tempMission.get("title") + "》的新一页："  + curURL);
+					nextFlag = false;
+					
+					//先直接读取整个页面
+					String strHtml =  SpiderUtils.downHtml(curURL, refURL, 0);
+	                //System.out.println(new Date() + " 帖子《" + tempMission.get("title") + "》下载完毕，共计" + strHtml.length() + "字节。开始解析图片地址……");
+	                
+	                //匹配到图片链接
+	                Matcher mImageLink = pImageLink.matcher(strHtml);
+	                while(mImageLink.find()){
+	                	//创建保存图片的子文件夹
+	                	File saveDict = new File(saveDictionary);
+	                	if(!saveDict.exists()){
+	                		saveDict.mkdirs();
+	                	}
+	                	//放入待处理队列
+            			Map<String, String> tempResult = new HashMap<String, String>(); 
+            			tempResult.put("imageDownURL", SpiderUtils.relativeURLHandler(mImageLink.group(1)));
+            			tempResult.put("saveDictionary", saveDictionary);
+            			Spider.getSpiderInstance().getImageDownList().add(tempResult);
+	                }
+	                
+	                //匹配到下一页的链接
+	                Matcher mNextLink = pNextLink.matcher(strHtml);
+	                if(mNextLink.find()){
+	                	//记录来源页面
+	                	refURL = curURL;
+	                	curURL = SpiderUtils.relativeURLHandler(mNextLink.group(1).replace("&amp;", "&"));
+	                	nextFlag = true;
+	                }
+					//还是没找到下一页的话，退出循环
+					if(nextFlag == false){
+						break;
 					}
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
 				}
 			}
 			try {

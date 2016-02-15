@@ -2,11 +2,14 @@ package leibniz.hu.forumspider;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -44,8 +47,10 @@ public class SpiderUtils {
 		conn.setRequestProperty("Accept-Language", "en-US,en;q=0.8,zh-CN;q=0.6,zh;q=0.4");
 		//根据本类维护的cookieMap，构造出cookies请求部分
 		Set<String> cookieKeys = cookieMap.keySet();
-		for(String key:cookieKeys){
-			conn.addRequestProperty("cookie", key + "=" + cookieMap.get(key));
+		if(null != cookieKeys){
+			for(String key:cookieKeys){
+				conn.addRequestProperty("cookie", key + "=" + cookieMap.get(key));
+			}
 		}
 		conn.setConnectTimeout(30*1000);  
 	    conn.setReadTimeout(30*1000);
@@ -68,10 +73,12 @@ public class SpiderUtils {
 	//从connection的响应中获取cookie设定信息，更新原有cookieMap
 	public static void getCookie(URLConnection conn){
 		List<String> listTemp= conn.getHeaderFields().get("Set-Cookie");
-		for(String cookie : listTemp){
-			String strTemp = cookie.split(";")[0];
-			//因为是Map,旧的Cookie会被替代
-			cookieMap.put(strTemp.split("=")[0], strTemp.split("=")[1]);
+		if(null != listTemp){
+			for(String cookie : listTemp){
+				String strTemp = cookie.split(";")[0];
+				//因为是Map,旧的Cookie会被替代
+				cookieMap.put(strTemp.split("=")[0], strTemp.split("=")[1]);
+			}
 		}
 		//参照chrome发出的cookies，两个可有可无的cookies
 		if(null == cookieMap.get("AJSTAT_ok_times")){
@@ -86,34 +93,38 @@ public class SpiderUtils {
 	
 	//将下载网页独立成方法，便于多次尝试下载
 	//tryCnt为尝试的次数，该方法返回读取到的StringBuffer
-	public static String downHtml(URLConnection conn, int tryCnt){
+	public static String downHtml(String curURL, String refURL, int tryCnt){
 		Scanner scanner = null;
-		StringBuffer bufHtml = new StringBuffer();
 		try{
+			URLConnection conn = new URL(curURL).openConnection();
+			SpiderUtils.initReqHeader(conn, refURL);
+			((HttpURLConnection) conn).setRequestMethod("GET");
+			//正式发出请求
+			conn.connect();
+			//获取相应中的cookie
+			//SpiderUtils.getCookie(conn);
+			StringBuffer bufHtml = new StringBuffer();
 			scanner = new Scanner(conn.getInputStream());  
 			while (scanner.hasNextLine()) {  
 				bufHtml.append(scanner.nextLine());  
 			}
-			if(tryCnt>0){
-				System.out.println(bufHtml);
-			}
+			((HttpURLConnection)conn).disconnect();
 			return bufHtml.toString();
 		} catch (IOException e) {
 			tryCnt++;
 			if(tryCnt < 5){
 				//尝试5次
-				return downHtml(conn, tryCnt);
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e1) {}
+				return downHtml(curURL, refURL, tryCnt);
 			} else {
 				return null;
 			}
 		} finally {
-			try{
-				//到此读完整个页面，关闭资源
-				if(null != scanner){
-					scanner.close();
-				}
-			} catch (IOException e) {
-					e.printStackTrace();
+			//到此读完整个页面，关闭资源
+			if(null != scanner){
+				scanner.close();
 			}
 		}
 	}

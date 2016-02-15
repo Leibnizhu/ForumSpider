@@ -11,6 +11,7 @@ public class ThreadManager implements Runnable{
 	private List<Thread> artcScanList;
 	
 	public void run() {
+		String prevMsg = null;
 		while(true){
 			ThreadGroup currentGroup = Thread.currentThread().getThreadGroup();
 			int threadNum = currentGroup.activeCount();
@@ -29,8 +30,12 @@ public class ThreadManager implements Runnable{
 			}
 			artcScanThreadNum = artcScanList.size();
 			imgDownThreadNum = imgDownList.size();
-			System.out.println("帖子解析器：" + artcScanThreadNum + "个；待处理帖子：" + Spider.getSpiderInstance().getUnHandleList().size() + "个。"
-									+ "图片下载器：" + imgDownThreadNum + "个；待下载图片：" + Spider.getSpiderInstance().getImageDownList().size() + "张。");
+			String msg = "帖子解析器：" + artcScanThreadNum + "个；待处理帖子：" + Spider.getSpiderInstance().getUnHandleList().size() + "个。"
+					+ "图片下载器：" + imgDownThreadNum + "个；待下载图片：" + Spider.getSpiderInstance().getImageDownList().size() + "张。";
+			if(!msg.equals(prevMsg)){
+				System.out.println(msg);
+				prevMsg = msg;
+			}
 			//调整线程数量
 			adjustArtcScanThread();
 			adjustImgDownThread();
@@ -47,27 +52,24 @@ public class ThreadManager implements Runnable{
 	public void adjustArtcScanThread(){
 		int count = 0;
 		//根据待处理帖子数和帖子分析器数量动态分配线程数量
-		while((artcScanThreadNum <= 10) || (Spider.getSpiderInstance().getUnHandleList().size() / artcScanThreadNum >= 1.5)){
+		while((artcScanThreadNum <= 10) || ((Spider.getSpiderInstance().getUnHandleList().size() / (float)artcScanThreadNum) >= 1.5)){
 			Thread temp = new Thread(new ArticleScanThread(), "articleScan-"+ (new Random()).nextInt());
 			temp.start();
 			artcScanList.add(temp);
 			artcScanThreadNum = artcScanList.size();
 		}
-		while(artcScanThreadNum >= 15 && (Spider.getSpiderInstance().getUnHandleList().size() / artcScanThreadNum <= 0.75)){
-			while(true){
-				Thread curArtcScanThread = artcScanList.remove(0);
-				if(Thread.State.TIMED_WAITING == curArtcScanThread.getState()){
-					//线程处于sleep()方法中，说明已完成一项任务，可以结束
-					curArtcScanThread.interrupt();
-					count++;
+		while(artcScanThreadNum >= 15 && ((Spider.getSpiderInstance().getUnHandleList().size() / (float)artcScanThreadNum) <= 0.75)){
+			Thread curArtcScanThread = artcScanList.remove(0);
+			if(Thread.State.TIMED_WAITING == curArtcScanThread.getState()){
+				//线程处于sleep()方法中，说明已完成一项任务，可以结束
+				curArtcScanThread.interrupt();
+				count++;
+				if(count >= 5){
 					break;
-				} else {
-					//否则放回队列
-					artcScanList.add(curArtcScanThread);
 				}
-			}
-			if(count >= 5){
-				break;
+			} else {
+				//否则放回队列
+				artcScanList.add(curArtcScanThread);
 			}
 			artcScanThreadNum = artcScanList.size();
 		}
@@ -76,27 +78,24 @@ public class ThreadManager implements Runnable{
 	public void adjustImgDownThread(){
 		int count = 0;
 		//根据待下载图片数和图片下载器数量动态分配线程数量
-		while((imgDownThreadNum <= 25) || (Spider.getSpiderInstance().getImageDownList().size() / imgDownThreadNum >= 1.5)){
+		while((imgDownThreadNum <= 25) || ((Spider.getSpiderInstance().getImageDownList().size() / (float)imgDownThreadNum) >= 1.5)){
 			Thread temp = new Thread(new ImageDownThread(), "imageDown-"+ (new Random()).nextInt());
 			temp.start();
 			imgDownList.add(temp);
 			imgDownThreadNum = imgDownList.size();
 		}
-		while((imgDownThreadNum >= 50) && (Spider.getSpiderInstance().getImageDownList().size() / imgDownThreadNum <= 0.5)){
-			while(true){
-				Thread curImgScanThread = imgDownList.remove(0);
-				if(Thread.State.TIMED_WAITING == curImgScanThread.getState()){
-					//线程处于sleep()方法中，说明已完成一项任务，可以结束
-					curImgScanThread.interrupt();
-					count++;
+		while((imgDownThreadNum >= 50) && ((Spider.getSpiderInstance().getImageDownList().size() / (float)imgDownThreadNum) <= 0.5)){
+			Thread curImgScanThread = imgDownList.remove(0);
+			if(Thread.State.TIMED_WAITING == curImgScanThread.getState()){
+				//线程处于sleep()方法中，说明已完成一项任务，可以结束
+				curImgScanThread.interrupt();
+				count++;
+				if(count >= 10){
 					break;
-				} else {
-					//否则放回队列
-					imgDownList.add(curImgScanThread);
 				}
-			}
-			if(count >= 10){
-				break;
+			} else {
+				//否则放回队列
+				imgDownList.add(curImgScanThread);
 			}
 			imgDownThreadNum = imgDownList.size();
 		}
