@@ -13,8 +13,7 @@ import java.util.Map;
 public class ImageDownThread implements Runnable {
 	private String imageURL;
 	private String saveDictionary;
-	private int tryCnt;
-	
+		
 	@Override
 	public void run() {
 		Map<String, String> tempMission = null;
@@ -25,8 +24,7 @@ public class ImageDownThread implements Runnable {
 				//得到新任务的url及标题（保存路径）
 				this.imageURL = tempMission.get("imageDownURL");
 				this.saveDictionary = tempMission.get("saveDictionary");
-				tryCnt = 0;
-				download();			
+				download(0);			
 			}
 			try {
 				Thread.sleep(5000);
@@ -35,7 +33,8 @@ public class ImageDownThread implements Runnable {
 		}
 	}
 	
-	public void download(){
+	//下载的主体程序独立成方法，方便于重复尝试下载
+	public void download(int tryCnt){
 		if(tryCnt<=5){
 			//e.g. http://2342.net/1/3.jpg
 			String filename = imageURL.substring(imageURL.lastIndexOf('/') + 1);
@@ -49,6 +48,7 @@ public class ImageDownThread implements Runnable {
 				File fImg = new File(saveDictionary, filename);
 				if(fImg.exists()){
 					//return;
+					//此处需要更新E206本地的判断图片完整性代码段
 				}
 				fs = new FileOutputStream(fImg);  
 				
@@ -61,7 +61,6 @@ public class ImageDownThread implements Runnable {
 			} catch (IOException e) {
 				//e.printStackTrace();
 				System.out.println(new Date() + " 下载图片：" + imageURL + "失败！！");
-				tryCnt++;
 				try {
 					if(fs != null){
 						fs.close();
@@ -72,7 +71,9 @@ public class ImageDownThread implements Runnable {
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
-				download();
+				//再次尝试
+				tryCnt++;
+				download(tryCnt);
 			}  finally{
 				try {
 					if(fs != null){

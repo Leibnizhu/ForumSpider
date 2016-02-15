@@ -16,8 +16,12 @@
 	<!--设置下载的文件的保存路径，请设置为运行的系统的目录路径形式-->
 	<!--同一个帖子的所有照片，将会被下载到以帖子标题命名的子文件夹下-->
 	<savepath>/home/***/download</savepath>
+	<!-- 帖子中判断下一页的正则表达式，链接做group，注意转义字符-->
 	<next-page>href="(/arthtml/.{1,20}?)".{1,20}?>下一页&lt;/a&gt;</next-page>
+	<!-- 板块帖子列表中下一页的正则表达式，链接做group，注意转义字符-->
 	<next-list>href="(/artlist/.{1,20}?)".{1,30}?>下一页&lt;/a&gt;</next-list>
+	<!-- 板块帖子列表中帖子链接的正则表达式，链接地址和标题分别做group，注意转义字符-->
 	<article-in-list>&lt;a\s*href="(/arthtml/.+?)".+?>(.+?)&lt;/a&gt;</article-in-list>
+	<!-- 帖子中要下载的图片地址的正则表达式，链接做group，注意转义字符-->
 	<image-addr>file="(attachments.{1,40}?.jpg)"</image-addr>
 </spider>

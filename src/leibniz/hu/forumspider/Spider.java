@@ -16,23 +16,24 @@ import java.util.regex.Pattern;
 import org.junit.Test;
 
 public class Spider {
-	//初始化配置
+	//用于配置的变量变量
 	private String initialURL;
 	private ArrayList<String> keywords = new ArrayList<String>();
 	private String nextListRegax;
 	private String artcInListRegax;
-	//从spider.cfg.xml文件中读取爬虫的配置
+	
+	//通过SpiderUtils从spider.cfg.xml文件中读取爬虫的配置，在main()函数中已经执行了SpiderUtils.readConfig()
 	private void readConfig(){
-		//SpiderUtils.readConfig();
 		initialURL =SpiderUtils.initialURL;
 		keywords = SpiderUtils.keywords;
 		nextListRegax = SpiderUtils.nextList;
 		artcInListRegax = SpiderUtils.articleInList;
 	}
 	
-	//待处理帖子和图片队列
+	//待处理帖子和待下载图片的队列
 	private  ArrayList<Map<String, String>> unHandleList = new ArrayList<Map<String, String>>();
 	private  ArrayList<Map<String, String>> imageDownList = new ArrayList<Map<String, String>>();
+	//提供get函数供其他类查询队列
 	public  ArrayList<Map<String, String>> getUnHandleList(){
 		return unHandleList;
 	}
@@ -40,7 +41,7 @@ public class Spider {
 		return imageDownList;
 	}
 	
-	//Singleton
+	//Singleton单例模式
 	private static Spider p = new Spider();
 	private Spider(){}
 	public Spider(String savepath){
@@ -49,49 +50,37 @@ public class Spider {
 	public static Spider getSpiderInstance(){
 		return p;
 	}
-		
-	/**
-	 * 
-	 */
+	
 	@Test
+	//开启爬虫，读取每一页帖子列表，对其中满足关键字条件的帖子，将网址和标题放入任务队列
 	public void startSpider(){
 		try {
+			//将配置装配到Spider类成员变量
 			readConfig();
+			//循环遍历每一页所需的网址变量
 			String curURL = initialURL;
-			//Regax for hyper links.
-			//e.g. <a href="/arthtml/233.html" target="_blank">收到分公司到法规水电费过</a>
-//			Pattern pArticleLink = Pattern.compile("<a\\s*href=\"(/arthtml/.+?)\".+?>(.+?)</a>");
-			Pattern pArticleLink = Pattern.compile(artcInListRegax);
-			// e.g. href="/artlist/7-233.html" class="pagelink_a">下一页</a>
-			//Pattern pNextLink = Pattern.compile("href=\"(/artlist/.{1,20}?)\".{1,30}?>下一页</a>");
-			Pattern pNextLink = Pattern.compile(nextListRegax);
 			String refURL = null;
+			//判断下一页和帖子地址标题所需的正则表达式
+			Pattern pArticleLink = Pattern.compile(artcInListRegax);
+			Pattern pNextLink = Pattern.compile(nextListRegax);
 						
 			//开始遍历帖子
 			while(true){
 				System.out.println(new Date() + " 打开新一页帖子列表：" + curURL);
-				//ThreadManager.managerGuard();
 				
-				//准备请求头部信息
 				URLConnection conn = new URL(curURL).openConnection();
+				//准备请求头部信息
 				SpiderUtils.initReqHeader(conn, refURL);
-//				((HttpURLConnection) conn).setRequestMethod("GET");  
+				((HttpURLConnection) conn).setRequestMethod("GET");
 				//正式发出请求
 				conn.connect();
 				//获取相应中的cookie
-//				System.out.println(conn.getHeaderFields());
 				SpiderUtils.getCookie(conn);
 				
 				//先直接读取整个页面
-				StringBuffer bufHtml = new StringBuffer();
-				Scanner scanner = new Scanner(conn.getInputStream());  
-                while (scanner.hasNextLine()) {  
-                	bufHtml.append(scanner.nextLine());  
-                }
-                String strHtml = bufHtml.toString();
+				String strHtml =  SpiderUtils.downHtml(conn, 0);
                 System.out.println(new Date() + " 帖子列表" + curURL + "下载完毕，共计" + strHtml.length() + "字节。开始目标帖子地址……");
-                //到此读完整个页面，关闭资源
-                scanner.close();
+                
                 ((HttpURLConnection)conn).disconnect();
                 
                 Matcher mArticleLink = pArticleLink.matcher(strHtml);
@@ -100,7 +89,6 @@ public class Spider {
                 	//判断标题是否符合关键词
                 	for(String keyword: keywords){
                 		if(mArticleLink.group(2).contains(keyword)){
-                			//System.out.println(mArticleLink.group(1) +"  " +mArticleLink.group(2));
                 			//放入待处理队列
                 			Map<String, String> tempResult = new HashMap<String, String>(); 
                 			tempResult.put("title", mArticleLink.group(2));
@@ -115,8 +103,10 @@ public class Spider {
                 Matcher mNextLink = pNextLink.matcher(strHtml);
                 if(mNextLink.find()){
                 	System.out.println(mNextLink.group(1));
+					//记录来源页面
                 	refURL = curURL;
                 	curURL = SpiderUtils.relativeURLHandler(mNextLink.group(1).replace("&amp;", "&"));
+					//降低频率，防反爬，减轻其他线程负担
                 	Thread.sleep(5000);
                 } else {
                 	break;

@@ -62,6 +62,7 @@ public class SpiderUtils {
 		}
 	}
 	
+	//从connection的响应中获取cookie设定信息，更新原有cookieMap
 	public static void getCookie(URLConnection conn){
 		List<String> listTemp= conn.getHeaderFields().get("Set-Cookie");
 		for(String cookie : listTemp){
@@ -69,6 +70,7 @@ public class SpiderUtils {
 			//因为是Map,旧的Cookie会被替代
 			cookieMap.put(strTemp.split("=")[0], strTemp.split("=")[1]);
 		}
+		//参照chrome发出的cookies，两个可有可无的cookies
 		cookieMap.put("AJSTAT_ok_times", "1");
 		if(null == cookieMap.get("AJSTAT_ok_pages")){
 			cookieMap.put("AJSTAT_ok_pages", "1");
@@ -77,6 +79,41 @@ public class SpiderUtils {
 		}
 	}
 	
+	//将下载网页独立成方法，便于多次尝试下载
+	//tryCnt为尝试的次数，该方法返回读取到的StringBuffer
+	private String downHtml(URLConnection conn, int tryCnt){
+		Scanner scanner = null;
+		StringBuffer bufHtml = new StringBuffer();
+		try{
+			scanner = new Scanner(conn.getInputStream());  
+			while (scanner.hasNextLine()) {  
+				bufHtml.append(scanner.nextLine());  
+			}
+			if(tryCnt>0){
+				System.out.println(bufHtml);
+			}
+			return bufHtml.toString();
+		} catch (IOException e) {
+			tryCnt++;
+			if(tryCnt < 5){
+				//尝试5次
+				return downHtml(conn, tryCnt);
+			} else {
+				return null;
+			}
+		} finally {
+			try{
+				//到此读完整个页面，关闭资源
+				if(null != scanner){
+					scanner.close();
+				}
+			} catch (IOException e) {
+					e.printStackTrace();
+			}
+		}
+	}
+	
+	//从spider.cfg.xml中读取配置
 	public static void readConfig(){
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();

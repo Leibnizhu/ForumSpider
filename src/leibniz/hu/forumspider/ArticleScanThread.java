@@ -39,13 +39,8 @@ public class ArticleScanThread implements Runnable {
 				String curURL = articleURL;
 				
 				//图片链接的正则表达式
-				//e.g. <img src="http://23423.net/7edaa21f1d5401.jpg" alt="" />
 				Pattern pImageLink = Pattern.compile(imgAddrRegax);
 				//下一页链接的正则表达式
-				//e.g. 多页有下一页：href="/arthtml/4sdf1-2.html" class="pagelink_a">下一页</a>
-				//e.g. 多页无下一页：href="/arthtml/64808.html">1</a>&nbsp;<a class="curr">2</a>&nbsp;<a class="nolink">下一页</a>
-				//e.g. 单页无下一页：什么都没有
-//				Pattern pNextLink = Pattern.compile("href=\"(/arthtml/.{1,20}?)\".{1,20}?>下一页</a>");
 				Pattern pNextLink = Pattern.compile(nextPageRegax);
 				//标识是否有下一页
 				boolean nextFlag ;
@@ -59,17 +54,21 @@ public class ArticleScanThread implements Runnable {
 						URLConnection conn = new URL(curURL).openConnection();
 						SpiderUtils.initReqHeader(conn, curURL);
 						((HttpURLConnection) conn).setRequestMethod("GET");
+						//正式发出请求
+						conn.connect();
+						//获取相应中的cookie
+						SpiderUtils.getCookie(conn);
 						
 						//先直接读取整个页面
-						StringBuffer bufHtml = new StringBuffer();
+						/* StringBuffer bufHtml = new StringBuffer();
 						Scanner scanner = new Scanner(conn.getInputStream());  
 		                while (scanner.hasNextLine()) {  
 		                	bufHtml.append(scanner.nextLine());  
 		                }
-		                String strHtml = bufHtml.toString();
-		                //System.out.println(new Date() + " 帖子《" + tempMission.get("title") + "》下载完毕，共计" + strHtml.length() + "字节。开始解析图片地址……");
 		                //读取完整个页面了，关闭资源
-		                scanner.close();
+		                scanner.close(); */
+		                String strHtml =  SpiderUtils.downHtml(conn, 0);
+		                //System.out.println(new Date() + " 帖子《" + tempMission.get("title") + "》下载完毕，共计" + strHtml.length() + "字节。开始解析图片地址……");
 		                ((HttpURLConnection)conn).disconnect();
 		                
 		                //匹配到图片链接
