@@ -28,6 +28,7 @@ public class SpiderUtils {
 	public static ArrayList<String> keywords = new ArrayList<String>();
 	private static Map<String,String> cookieMap = new HashMap<String, String>();
 	
+	//模拟请求头部信息，防反爬
 	public static void initReqHeader(URLConnection conn, String refURL){
 		conn.setRequestProperty("Connection", "keep-alive");
 		conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
@@ -35,17 +36,19 @@ public class SpiderUtils {
 		conn.setRequestProperty("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36");
 		conn.setRequestProperty("Cache-control","no-cache, no-store");
 		conn.setRequestProperty("DNT", "1");
+		//根据形参填充参考页面参数
 		if(null != refURL){
 			conn.setRequestProperty("Referer", refURL);
 		}
 		conn.setRequestProperty("Accept-Encoding", "deflate, sdch");
 		conn.setRequestProperty("Accept-Language", "en-US,en;q=0.8,zh-CN;q=0.6,zh;q=0.4");
+		//根据本类维护的cookieMap，构造出cookies请求部分
 		Set<String> cookieKeys = cookieMap.keySet();
 		for(String key:cookieKeys){
 			conn.addRequestProperty("cookie", key + "=" + cookieMap.get(key));
 		}
-		conn.setConnectTimeout(30000);  
-	    conn.setReadTimeout(30000);
+		conn.setConnectTimeout(30*1000);  
+	    conn.setReadTimeout(30*1000);
 	}
 	
 	//处理相对URl路径，获取绝对URL路径
@@ -81,7 +84,7 @@ public class SpiderUtils {
 	
 	//将下载网页独立成方法，便于多次尝试下载
 	//tryCnt为尝试的次数，该方法返回读取到的StringBuffer
-	private String downHtml(URLConnection conn, int tryCnt){
+	public static String downHtml(URLConnection conn, int tryCnt){
 		Scanner scanner = null;
 		StringBuffer bufHtml = new StringBuffer();
 		try{

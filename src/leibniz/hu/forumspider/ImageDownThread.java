@@ -43,7 +43,6 @@ public class ImageDownThread implements Runnable {
 			try {
 				URLConnection conn = new URL(imageURL).openConnection();
 				SpiderUtils.initReqHeader(conn, SpiderUtils.initialURL);
-				conn.setConnectTimeout(300*1000);
 				inStream = conn.getInputStream(); 
 				File fImg = new File(saveDictionary, filename);
 				if(fImg.exists()){
