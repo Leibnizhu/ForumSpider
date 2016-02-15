@@ -46,8 +46,17 @@ public class ImageDownThread implements Runnable {
 				inStream = conn.getInputStream(); 
 				File fImg = new File(saveDictionary, filename);
 				if(fImg.exists()){
-					//return;
-					//此处需要更新E206本地的判断图片完整性代码段
+					RandomAccessFile raf = new RandomAccessFile(fImg, "r");
+					raf.seek(raf.length()-2);
+					if(raf.read() == 0xff){
+						raf.seek(raf.length()-1);
+						if(raf.read() == 0xd9){
+							raf.close();
+							//System.out.println("图片" + filename + "已存在");
+							return;
+						}
+					}
+					raf.close();
 				}
 				fs = new FileOutputStream(fImg);  
 				
