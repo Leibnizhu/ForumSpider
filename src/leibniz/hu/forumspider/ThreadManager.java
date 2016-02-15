@@ -7,6 +7,8 @@ import java.util.Random;
 public class ThreadManager implements Runnable{
 	public static int imgDownThreadNum;
 	public static int artcScanThreadNum;
+	private List<Thread> imgDownList;
+	private List<Thread> artcScanList;
 	
 	public void run() {
 		while(true){
@@ -14,8 +16,8 @@ public class ThreadManager implements Runnable{
 			int threadNum = currentGroup.activeCount();
 			Thread[] threadList = new Thread[threadNum];
 			currentGroup.enumerate(threadList);
-			List<Thread> imgDownList = new ArrayList<Thread>();
-			List<Thread> artcScanList = new ArrayList<Thread>();
+			imgDownList = new ArrayList<Thread>();
+			artcScanList = new ArrayList<Thread>();
 			
 			//遍历，查找所有帖子分析和图片下载线程数量
 			for (int i = 0; i < threadNum; i++) {
@@ -29,60 +31,9 @@ public class ThreadManager implements Runnable{
 			imgDownThreadNum = imgDownList.size();
 			System.out.println("帖子解析器：" + artcScanThreadNum + "个；待处理帖子：" + Spider.getSpiderInstance().getUnHandleList().size() + "个。"
 									+ "图片下载器：" + imgDownThreadNum + "个；待下载图片：" + Spider.getSpiderInstance().getImageDownList().size() + "张。");
-			
-			int count = 0;
-			//根据待处理帖子数和帖子分析器数量动态分配线程数量
-			while((artcScanThreadNum <= 10) || (Spider.getSpiderInstance().getUnHandleList().size() / artcScanThreadNum >= 1.5)){
-				Thread temp = new Thread(new ArticleScanThread(), "articleScan-"+ (new Random()).nextInt());
-				temp.start();
-				artcScanList.add(temp);
-				artcScanThreadNum = artcScanList.size();
-			}
-			while(artcScanThreadNum >= 15 && (Spider.getSpiderInstance().getUnHandleList().size() / artcScanThreadNum <= 0.75)){
-				while(true){
-					Thread curArtcScanThread = artcScanList.remove(0);
-					if(Thread.State.TIMED_WAITING == curArtcScanThread.getState()){
-						//线程处于sleep()方法中，说明已完成一项任务，可以结束
-						curArtcScanThread.interrupt();
-						count++;
-						break;
-					} else {
-						//否则放回队列
-						artcScanList.add(curArtcScanThread);
-					}
-				}
-				if(count >= 5){
-					break;
-				}
-				artcScanThreadNum = artcScanList.size();
-			}
-			
-			//根据待下载图片数和图片下载器数量动态分配线程数量
-			while((imgDownThreadNum <= 25) || (Spider.getSpiderInstance().getImageDownList().size() / imgDownThreadNum >= 1.5)){
-				Thread temp = new Thread(new ImageDownThread(), "imageDown-"+ (new Random()).nextInt());
-				temp.start();
-				imgDownList.add(temp);
-				imgDownThreadNum = imgDownList.size();
-			}
-			count = 0;
-			while((imgDownThreadNum >= 100) && (Spider.getSpiderInstance().getImageDownList().size() / imgDownThreadNum <= 0.5)){
-				while(true){
-					Thread curImgScanThread = imgDownList.remove(0);
-					if(Thread.State.TIMED_WAITING == curImgScanThread.getState()){
-						//线程处于sleep()方法中，说明已完成一项任务，可以结束
-						curImgScanThread.interrupt();
-						count++;
-						break;
-					} else {
-						//否则放回队列
-						imgDownList.add(curImgScanThread);
-					}
-				}
-				if(count >= 5){
-					break;
-				}
-				imgDownThreadNum = imgDownList.size();
-			}
+			//调整线程数量
+			adjustArtcScanThread();
+			adjustImgDownThread();
 			
 			//休眠，降低唤醒频率
 			try {
@@ -90,6 +41,64 @@ public class ThreadManager implements Runnable{
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	public void adjustArtcScanThread(){
+		int count = 0;
+		//根据待处理帖子数和帖子分析器数量动态分配线程数量
+		while((artcScanThreadNum <= 10) || (Spider.getSpiderInstance().getUnHandleList().size() / artcScanThreadNum >= 1.5)){
+			Thread temp = new Thread(new ArticleScanThread(), "articleScan-"+ (new Random()).nextInt());
+			temp.start();
+			artcScanList.add(temp);
+			artcScanThreadNum = artcScanList.size();
+		}
+		while(artcScanThreadNum >= 15 && (Spider.getSpiderInstance().getUnHandleList().size() / artcScanThreadNum <= 0.75)){
+			while(true){
+				Thread curArtcScanThread = artcScanList.remove(0);
+				if(Thread.State.TIMED_WAITING == curArtcScanThread.getState()){
+					//线程处于sleep()方法中，说明已完成一项任务，可以结束
+					curArtcScanThread.interrupt();
+					count++;
+					break;
+				} else {
+					//否则放回队列
+					artcScanList.add(curArtcScanThread);
+				}
+			}
+			if(count >= 5){
+				break;
+			}
+			artcScanThreadNum = artcScanList.size();
+		}
+	}
+	
+	public void adjustImgDownThread(){
+		int count = 0;
+		//根据待下载图片数和图片下载器数量动态分配线程数量
+		while((imgDownThreadNum <= 25) || (Spider.getSpiderInstance().getImageDownList().size() / imgDownThreadNum >= 1.5)){
+			Thread temp = new Thread(new ImageDownThread(), "imageDown-"+ (new Random()).nextInt());
+			temp.start();
+			imgDownList.add(temp);
+			imgDownThreadNum = imgDownList.size();
+		}
+		while((imgDownThreadNum >= 50) && (Spider.getSpiderInstance().getImageDownList().size() / imgDownThreadNum <= 0.5)){
+			while(true){
+				Thread curImgScanThread = imgDownList.remove(0);
+				if(Thread.State.TIMED_WAITING == curImgScanThread.getState()){
+					//线程处于sleep()方法中，说明已完成一项任务，可以结束
+					curImgScanThread.interrupt();
+					count++;
+					break;
+				} else {
+					//否则放回队列
+					imgDownList.add(curImgScanThread);
+				}
+			}
+			if(count >= 10){
+				break;
+			}
+			imgDownThreadNum = imgDownList.size();
 		}
 	}
 	
