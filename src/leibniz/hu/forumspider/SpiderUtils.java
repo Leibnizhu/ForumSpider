@@ -74,7 +74,9 @@ public class SpiderUtils {
 			cookieMap.put(strTemp.split("=")[0], strTemp.split("=")[1]);
 		}
 		//参照chrome发出的cookies，两个可有可无的cookies
-		cookieMap.put("AJSTAT_ok_times", "1");
+		if(null == cookieMap.get("AJSTAT_ok_times")){
+			cookieMap.put("AJSTAT_ok_times", "1");
+		}
 		if(null == cookieMap.get("AJSTAT_ok_pages")){
 			cookieMap.put("AJSTAT_ok_pages", "1");
 		} else {
