@@ -31,7 +31,7 @@ public class ThreadManager implements Runnable{
 			artcScanThreadNum = artcScanList.size();
 			imgDownThreadNum = imgDownList.size();
 			String msg = "帖子解析器：" + artcScanThreadNum + "个；待处理帖子：" + Spider.getSpiderInstance().getUnHandleList().size() + "个。"
-					+ "图片下载器：" + imgDownThreadNum + "个；待下载图片：" + Spider.getSpiderInstance().getImageDownList().size() + "张。";
+					+ "图片下载器：" + imgDownThreadNum + "个；图片：待下载:" + Spider.getSpiderInstance().getImageDownList().size() + "；下载中:" + ImageDownThread.downloadingImgNum  + "；下载中:" + ImageDownThread.downloadedImgNum;
 			if(!msg.equals(prevMsg)){
 				System.out.println(msg);
 				prevMsg = msg;

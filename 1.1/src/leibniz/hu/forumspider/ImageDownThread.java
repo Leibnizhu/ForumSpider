@@ -14,6 +14,8 @@ import java.util.Map;
 public class ImageDownThread extends SpiderBinaryDownloader implements Runnable {
 	private String imageURL;
 	private String saveDictionary;
+	public static int downloadingImgNum = 0;
+	public static int downloadedImgNum = 0;
 
 	@Override
 	public boolean isNeedReDownload(RandomAccessFile raf){
@@ -41,7 +43,12 @@ public class ImageDownThread extends SpiderBinaryDownloader implements Runnable 
 				//得到新任务的url及标题（保存路径）
 				this.imageURL = tempMission.get("imageDownURL");
 				this.saveDictionary = tempMission.get("saveDictionary").replaceAll("[#<>/\\]", "");
-				download(imageURL, saveDictionary, 0);
+				downloadingImgNum++;
+				if(download(imageURL, saveDictionary, 0)){
+					//下载成功
+					downloadedImgNum++;
+				}
+				downloadingImgNum--;
 			}
 			try {
 				Thread.sleep(5000);
