@@ -14,8 +14,8 @@ public class ArticleScanThread implements Runnable {
 	/* private String originDictionary = SpiderUtils.savepath; */
 	//保存的文件夹路径（包含帖子标题的子文件夹）
 	private String saveDictionary;
-	private String nextPageRegax;
-	private String imgAddrRegax;
+	//private String nextPageRegax;
+	//private String imgAddrRegax;
 	
 	@Override
 	public void run() {
@@ -80,8 +80,6 @@ public class ArticleScanThread implements Runnable {
 			try {
 				Thread.sleep(3000);
 			} catch (InterruptedException e) {
-			}
-			if (Thread.currentThread().isInterrupted()) {  
 				break;  
 			}
 		}
