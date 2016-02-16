@@ -11,7 +11,7 @@
 ##使用
 &nbsp;&nbsp;&nbsp;&nbsp;爬虫由src目录下的spider.cfg.xml进行配置，具体配置参见该xml中的注释。
 
-&nbsp;&nbsp;&nbsp;&nbsp;执行`java leibniz.hu.forumspider.Spider`即可开启爬虫
+&nbsp;&nbsp;&nbsp;&nbsp;执行`java leibniz.hu.forumspider.SpiderMain`即可开启爬虫
 
 &nbsp;&nbsp;&nbsp;&nbsp;执行`java leibniz.hu.forumspider.MakeWeb`即可将下载目录里所有图片生成一系列网页以便进行浏览。
 
