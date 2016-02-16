@@ -14,21 +14,6 @@ import leibniz.hu.forumspider.ThreadManager;
 import org.junit.Test;
 
 public class SpiderMain extends SpiderHtmlDownloader{
-	//用于配置的变量变量
-	//private String initialURL;
-	//private ArrayList<String> keywords = new ArrayList<String>();
-	//private String nextListRegax;
-	//private String artcInListRegax;
-	
-	//通过SpiderUtils从spider.cfg.xml文件中读取爬虫的配置，在main()函数中已经执行了SpiderUtils.readConfig()
-	/* private void readConfig(){
-		initialURL =SpiderUtils.initialURL;
-		keywords = SpiderUtils.keywords;
-		nextListRegax = SpiderUtils.nextList;
-		artcInListRegax = SpiderUtils.articleInList;
-	} */
-	
-	//待处理帖子和待下载图片的队列
 	private  ArrayList<Map<String, String>> unHandleList = new ArrayList<Map<String, String>>();
 	private  ArrayList<Map<String, String>> imageDownList = new ArrayList<Map<String, String>>();
 	//提供get函数供其他类查询队列
@@ -50,9 +35,6 @@ public class SpiderMain extends SpiderHtmlDownloader{
 	//开启爬虫，读取每一页帖子列表，对其中满足关键字条件的帖子，将网址和标题放入任务队列
 	public void startSpider(){
 		try {
-			//将配置装配到Spider类成员变量
-			readConfig();
-			//循环遍历每一页所需的网址变量
 			String curURL = initialURL;
 			String refURL = null;
 			//判断下一页和帖子地址标题所需的正则表达式
@@ -102,7 +84,11 @@ public class SpiderMain extends SpiderHtmlDownloader{
 	}
 	
 	public static void main(String[] args){
-		/* SpiderUtils. */readConfig();
+		if(args.length != 0){
+			readConfig(args[0]);
+		} else{
+			readConfig(null);
+		}
 		ThreadManager.managerGuard();
 		SpiderMain.getSpiderInstance().startSpider();
 	}

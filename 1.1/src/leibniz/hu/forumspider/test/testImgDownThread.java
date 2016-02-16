@@ -15,7 +15,7 @@ public class testImgDownThread {
 
 	@Test
 	public void testImgDown(){
-		ImageDownThread.readConfig();
+		ImageDownThread.readConfig(null);
 		new ImageDownThread().download("http://k1.433200.net/1/20151127/52d78f905eb63d1e224.jpg", "/home/leibniz/Workspaces/MyEclipse 2015/ForumSpider", 0);
 	}
 }

@@ -11,8 +11,10 @@ import java.util.List;
 public class MakeWeb extends SpiderConfigurator{
 	public static void main(String[] args){
 		//获取配置信息
-		/* SpiderUtils. */readConfig();
-		//String savepath = SpiderUtils.savepath;
+		if(args.length != 0){
+			readConfig(args[0]);
+		}
+		readConfig(null);
 		//用于保存遍历到的所有图片文件
 		List<String> imgPaths = new LinkedList<String>();
 		File curDir = new File(savepath);

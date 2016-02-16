@@ -23,11 +23,14 @@ public class SpiderConfigurator {
 	public static ArrayList<String> keywords = new ArrayList<String>();
 		
 	//从spider.cfg.xml中读取配置
-	public static void readConfig(){
+	public static void readConfig(String xmlPath){
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder db = dbf.newDocumentBuilder();
-			Document document = db.parse(ClassLoader.getSystemResource("spider.cfg.xml").toString());
+			if(null == xmlPath){
+				xmlPath = "spider.cfg.xml";
+			}
+			Document document = db.parse(ClassLoader.getSystemResource(xmlPath).toString());
 			
 			//遍历所有节点
 			NodeList allNodes = document.getChildNodes().item(0).getChildNodes();
