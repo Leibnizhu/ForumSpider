@@ -6,8 +6,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import leibniz.hu.forumspider.SpiderMain;
+import leibniz.hu.forumspider.SpiderUtils;
+import leibniz.hu.forumspider.ThreadManager;
 
-public class ArticleScanThread implements Runnable {
+
+public class ArticleScanThread extends SpiderHtmlDownloader implements Runnable {
 	//帖子URL
 	private String articleURL;
 	//保存的文件夹路径（不包含帖子标题的子文件夹）
@@ -25,8 +29,8 @@ public class ArticleScanThread implements Runnable {
 		while(true){
 			ThreadManager.managerGuard();
 			
-			if(Spider.getSpiderInstance().getUnHandleList().size() > 0){
-				tempMission = Spider.getSpiderInstance().getUnHandleList().remove(0);
+			if(SpiderMain.getSpiderInstance().getUnHandleList().size() > 0){
+				tempMission = SpiderMain.getSpiderInstance().getUnHandleList().remove(0);
 				//得到新任务的url及标题（保存路径）
 				this.articleURL = tempMission.get("url");
 				this.saveDictionary = savepath +"/" + tempMission.get("title");
@@ -60,7 +64,7 @@ public class ArticleScanThread implements Runnable {
             			Map<String, String> tempResult = new HashMap<String, String>(); 
             			tempResult.put("imageDownURL", SpiderUtils.relativeURLHandler(mImageLink.group(1)));
             			tempResult.put("saveDictionary", saveDictionary);
-            			Spider.getSpiderInstance().getImageDownList().add(tempResult);
+            			SpiderMain.getSpiderInstance().getImageDownList().add(tempResult);
 	                }
 	                
 	                //匹配到下一页的链接

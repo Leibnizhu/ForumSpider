@@ -7,6 +7,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import leibniz.hu.forumspider.SpiderMain;
+import leibniz.hu.forumspider.SpiderUtils;
+import leibniz.hu.forumspider.ThreadManager;
+
 import org.junit.Test;
 
 public class SpiderMain extends SpiderHtmlDownloader{
@@ -36,12 +40,9 @@ public class SpiderMain extends SpiderHtmlDownloader{
 	}
 	
 	//Singleton单例模式
-	private static Spider p = new Spider();
-	private Spider(){}
-	public Spider(String savepath){
-		this.initialURL = savepath;
-	}
-	public static Spider getSpiderInstance(){
+	private static SpiderMain p = new SpiderMain();
+	private SpiderMain(){}
+	public static SpiderMain getSpiderInstance(){
 		return p;
 	}
 	
@@ -55,7 +56,7 @@ public class SpiderMain extends SpiderHtmlDownloader{
 			String curURL = initialURL;
 			String refURL = null;
 			//判断下一页和帖子地址标题所需的正则表达式
-			Pattern pArticleLink = Pattern.compile(artcInList);
+			Pattern pArticleLink = Pattern.compile(articleInList);
 			Pattern pNextLink = Pattern.compile(nextList);
 						
 			//开始遍历帖子
@@ -103,6 +104,6 @@ public class SpiderMain extends SpiderHtmlDownloader{
 	public static void main(String[] args){
 		/* SpiderUtils. */readConfig();
 		ThreadManager.managerGuard();
-		Spider.getSpiderInstance().startSpider();
+		SpiderMain.getSpiderInstance().startSpider();
 	}
 }

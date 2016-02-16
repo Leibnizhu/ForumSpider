@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import leibniz.hu.forumspider.ArticleScanThread;
+import leibniz.hu.forumspider.ImageDownThread;
+import leibniz.hu.forumspider.ThreadManager;
+
 public class ThreadManager implements Runnable{
 	public static int imgDownThreadNum;
 	public static int artcScanThreadNum;
@@ -30,8 +34,8 @@ public class ThreadManager implements Runnable{
 			}
 			artcScanThreadNum = artcScanList.size();
 			imgDownThreadNum = imgDownList.size();
-			String msg = "帖子解析器：" + artcScanThreadNum + "个；待处理帖子：" + Spider.getSpiderInstance().getUnHandleList().size() + "个。"
-					+ "图片下载器：" + imgDownThreadNum + "个；图片：待下载:" + Spider.getSpiderInstance().getImageDownList().size() + "；下载中:" + ImageDownThread.downloadingImgNum  + "；下载中:" + ImageDownThread.downloadedImgNum;
+			String msg = "帖子解析器：" + artcScanThreadNum + "个；待处理帖子：" + SpiderMain.getSpiderInstance().getUnHandleList().size() + "个。"
+					+ "图片下载器：" + imgDownThreadNum + "个；待下载:" + SpiderMain.getSpiderInstance().getImageDownList().size() + "；下载中:" + ImageDownThread.downloadingImgNum  + "；已下载:" + ImageDownThread.downloadedImgNum;
 			if(!msg.equals(prevMsg)){
 				System.out.println(msg);
 				prevMsg = msg;
@@ -52,13 +56,13 @@ public class ThreadManager implements Runnable{
 	public void adjustArtcScanThread(){
 		int count = 0;
 		//根据待处理帖子数和帖子分析器数量动态分配线程数量
-		while((artcScanThreadNum <= 10) || ((Spider.getSpiderInstance().getUnHandleList().size() / (float)artcScanThreadNum) >= 1.5)){
+		while((artcScanThreadNum <= 10) || ((SpiderMain.getSpiderInstance().getUnHandleList().size() / (float)artcScanThreadNum) >= 1.5)){
 			Thread temp = new Thread(new ArticleScanThread(), "articleScan-"+ (new Random()).nextInt());
 			temp.start();
 			artcScanList.add(temp);
 			artcScanThreadNum = artcScanList.size();
 		}
-		while(artcScanThreadNum >= 15 && ((Spider.getSpiderInstance().getUnHandleList().size() / (float)artcScanThreadNum) <= 0.75)){
+		while(artcScanThreadNum >= 15 && ((SpiderMain.getSpiderInstance().getUnHandleList().size() / (float)artcScanThreadNum) <= 0.75)){
 			Thread curArtcScanThread = artcScanList.remove(0);
 			if(Thread.State.TIMED_WAITING == curArtcScanThread.getState()){
 				//线程处于sleep()方法中，说明已完成一项任务，可以结束
@@ -78,13 +82,13 @@ public class ThreadManager implements Runnable{
 	public void adjustImgDownThread(){
 		int count = 0;
 		//根据待下载图片数和图片下载器数量动态分配线程数量
-		while((imgDownThreadNum <= 25) || ((Spider.getSpiderInstance().getImageDownList().size() / (float)imgDownThreadNum) >= 1.5)){
+		while((imgDownThreadNum <= 25) || ((SpiderMain.getSpiderInstance().getImageDownList().size() / (float)imgDownThreadNum) >= 1.5)){
 			Thread temp = new Thread(new ImageDownThread(), "imageDown-"+ (new Random()).nextInt());
 			temp.start();
 			imgDownList.add(temp);
 			imgDownThreadNum = imgDownList.size();
 		}
-		while((imgDownThreadNum >= 50) && ((Spider.getSpiderInstance().getImageDownList().size() / (float)imgDownThreadNum) <= 0.5)){
+		while((imgDownThreadNum >= 50) && ((SpiderMain.getSpiderInstance().getImageDownList().size() / (float)imgDownThreadNum) <= 0.5)){
 			Thread curImgScanThread = imgDownList.remove(0);
 			if(Thread.State.TIMED_WAITING == curImgScanThread.getState()){
 				//线程处于sleep()方法中，说明已完成一项任务，可以结束
