@@ -24,4 +24,6 @@
 	<article-in-list>&lt;a\s*href="(/arthtml/.+?)".+?>(.+?)&lt;/a&gt;</article-in-list>
 	<!-- 帖子中要下载的图片地址的正则表达式，链接做group，注意转义字符-->
 	<image-addr>file="(attachments.{1,40}?.jpg)"</image-addr>
+	<!-- 下载到的帖子体积最小值，小于此值则认为下载失败，不设置时默认为0，即任意大小即可接受-->
+	<min-page-size>30000</min-page-size>
 </spider>

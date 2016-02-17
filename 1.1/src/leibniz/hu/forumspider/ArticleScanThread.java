@@ -43,39 +43,48 @@ public class ArticleScanThread extends SpiderHtmlDownloader implements Runnable 
 					nextFlag = false;
 					
 					//先直接读取整个页面
-					String strHtml =  /* SpiderUtils. */downHtml(curURL, refURL, 0);
+					String strHtml = downHtml(curURL, refURL, 0);
 	                //System.out.println(new Date() + " 帖子《" + tempMission.get("title") + "》下载完毕，共计" + strHtml.length() + "字节。开始解析图片地址……");
 	                
-	                //匹配到图片链接
-	                Matcher mImageLink = pImageLink.matcher(strHtml);
-	                while(mImageLink.find()){
-	                	//创建保存图片的子文件夹
-	                	File saveDict = new File(saveDictionary);
-	                	if(!saveDict.exists()){
-	                		saveDict.mkdirs();
-	                	}
-	                	//放入待处理队列
-            			Map<String, String> tempResult = new HashMap<String, String>(); 
-            			tempResult.put("imageDownURL", SpiderUtils.relativeURLHandler(mImageLink.group(1)));
-            			tempResult.put("saveDictionary", saveDictionary);
-            			SpiderMain.getSpiderInstance().getImageDownList().add(tempResult);
-	                }
-	                
-	                //匹配到下一页的链接
-	                Matcher mNextLink = pNextLink.matcher(strHtml);
-	                if(mNextLink.find()){
-	                	//记录来源页面
-	                	refURL = curURL;
-	                	curURL = SpiderUtils.relativeURLHandler(mNextLink.group(1).replace("&amp;", "&"));
-	                	nextFlag = true;
-	                }
-					//还是没找到下一页的话，退出循环
-					if(nextFlag == false){
-						break;
+					if(null != strHtml && strHtml.length > minPageSize){
+						//匹配到图片链接
+						Matcher mImageLink = pImageLink.matcher(strHtml);
+						while(mImageLink.find()){
+							//创建保存图片的子文件夹
+							File saveDict = new File(saveDictionary);
+							if(!saveDict.exists()){
+								saveDict.mkdirs();
+							}
+							//放入待处理队列
+							Map<String, String> tempResult = new HashMap<String, String>(); 
+							tempResult.put("imageDownURL", SpiderUtils.relativeURLHandler(mImageLink.group(1)));
+							tempResult.put("saveDictionary", saveDictionary.replaceAll("[#<>!]", ""));
+							SpiderMain.getSpiderInstance().getImageDownList().add(tempResult);
+						}
+						
+						//匹配到下一页的链接
+						Matcher mNextLink = pNextLink.matcher(strHtml);
+						if(mNextLink.find()){
+							//记录来源页面
+							refURL = curURL;
+							curURL = SpiderUtils.relativeURLHandler(mNextLink.group(1).replace("&amp;", "&"));
+							nextFlag = true;
+						}
+						//还是没找到下一页的话，退出循环
+						if(nextFlag == false){
+							break;
+						}
+					}
+					//处理完当前帖子的一页，休眠一段时间，防反爬
+					//如果读到页面为空，也会跳过解析阶段，到这里休眠后重新读取
+					try {
+						Thread.sleep(3000);
+					} catch (InterruptedException e) {
+						//由ThreadManager发出的中断，无视
 					}
 				}
 			}
-			//处理完一个下载任务，休眠一段时间
+			//处理完一个帖子，休眠一段时间
 			//一方面防反爬，另一方面方便ThreadManager判断是否可以关闭线程
 			try {
 				Thread.sleep(3000);

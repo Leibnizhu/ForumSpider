@@ -20,6 +20,7 @@ public class SpiderConfigurator {
 	public static String nextList = null;
 	public static String articleInList = null;
 	public static String imgAddr = null;
+	public static int minPageSize = 0;
 	public static ArrayList<String> keywords = new ArrayList<String>();
 		
 	//从spider.cfg.xml中读取配置
@@ -75,6 +76,10 @@ public class SpiderConfigurator {
 				//找到帖子中图片地址的正则表达式，放入属性
 				if("image-addr".equals(tempNodeName)){
 					imgAddr = tempNode.getTextContent();
+				}
+				//找到帖子中图片地址的正则表达式，放入属性
+				if("min-page-size".equals(tempNodeName)){
+					minPageSize = tempNode.getTextContent();
 				}
 			}
 			createSaveDict();

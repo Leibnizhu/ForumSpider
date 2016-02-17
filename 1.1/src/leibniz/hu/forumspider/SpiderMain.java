@@ -49,33 +49,36 @@ public class SpiderMain extends SpiderHtmlDownloader{
 				String strHtml = downHtml(curURL, refURL, 0);
                 System.out.println(new Date() + " 帖子列表" + curURL + "下载完毕，共计" + strHtml.length() + "字节。开始目标帖子地址……");
                 
-                Matcher mArticleLink = pArticleLink.matcher(strHtml);
-                //用while遍历整个网页所有的匹配的地址
-                while(mArticleLink.find()){
-                	//判断标题是否符合关键词
-                	for(String keyword: keywords){
-                		if(mArticleLink.group(2).contains(keyword)){
-                			//放入待处理队列
-                			Map<String, String> tempResult = new HashMap<String, String>(); 
-                			tempResult.put("title", mArticleLink.group(2));
-                			tempResult.put("url", SpiderUtils.relativeURLHandler(mArticleLink.group(1).replace("&amp;", "&")));
-                			unHandleList.add(tempResult);
-                			//跳出匹配关键词的循环
-                			break;
-                		}
-                	}//break跳出到这里，准备寻找下一个符合帖子链接正则的
-                }
-                //匹配下一页链接
-                Matcher mNextLink = pNextLink.matcher(strHtml);
-                if(mNextLink.find()){
-					//记录来源页面
-                	refURL = curURL;
-                	curURL = SpiderUtils.relativeURLHandler(mNextLink.group(1).replace("&amp;", "&"));
-					//降低频率，防反爬，减轻其他线程负担
-                	Thread.sleep(5000);
-                } else {
-                	break;
-                }
+				if(null != strHtml && strHtml.length > minPageSize){
+					Matcher mArticleLink = pArticleLink.matcher(strHtml);
+					//用while遍历整个网页所有的匹配的地址
+					while(mArticleLink.find()){
+						//判断标题是否符合关键词
+						for(String keyword: keywords){
+							if(mArticleLink.group(2).contains(keyword)){
+								//放入待处理队列
+								Map<String, String> tempResult = new HashMap<String, String>(); 
+								tempResult.put("title", mArticleLink.group(2));
+								tempResult.put("url", SpiderUtils.relativeURLHandler(mArticleLink.group(1).replace("&amp;", "&")));
+								unHandleList.add(tempResult);
+								//跳出匹配关键词的循环
+								break;
+							}
+						}//break跳出到这里，准备寻找下一个符合帖子链接正则的
+					}
+					//匹配下一页链接
+					Matcher mNextLink = pNextLink.matcher(strHtml);
+					if(mNextLink.find()){
+						//记录来源页面
+						refURL = curURL;
+						curURL = SpiderUtils.relativeURLHandler(mNextLink.group(1).replace("&amp;", "&"));
+					} else {
+						//正确下载了页面而没有下一页链接
+						break;
+					}
+				}
+				//降低频率，防反爬，减轻其他线程负担
+				Thread.sleep(5000);
 			}
 			System.out.println(new Date() + " 找不到下一页，主线程结束，当前帖子列表为：" +curURL);
 		} catch (InterruptedException e) {

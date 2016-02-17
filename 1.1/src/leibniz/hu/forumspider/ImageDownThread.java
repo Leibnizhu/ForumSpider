@@ -41,11 +41,14 @@ public class ImageDownThread extends SpiderBinaryDownloader implements Runnable 
 				tempMission = SpiderMain.getSpiderInstance().getImageDownList().remove(0);
 				//得到新任务的url及标题（保存路径）
 				this.imageURL = tempMission.get("imageDownURL");
-				this.saveDictionary = tempMission.get("saveDictionary").replaceAll("[#<>!]", "");
+				this.saveDictionary = tempMission.get("saveDictionary");
 				downloadingImgNum++;
 				if(downImage(imageURL, saveDictionary, 0)){
 					//下载成功
 					downloadedImgNum++;
+				} else {
+					//下载失败，回炉重造
+					 SpiderMain.getSpiderInstance().getImageDownList().add(tempMission);
 				}
 				if(downloadingImgNum>0){
 					downloadingImgNum--;
