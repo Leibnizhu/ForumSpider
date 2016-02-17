@@ -11,9 +11,11 @@
 ##使用
 &nbsp;&nbsp;&nbsp;&nbsp;爬虫由src目录下的spider.cfg.xml进行配置，具体配置参见该xml中的注释。
 
-&nbsp;&nbsp;&nbsp;&nbsp;执行`java leibniz.hu.forumspider.SpiderMain`即可开启爬虫
+&nbsp;&nbsp;&nbsp;&nbsp;执行`java leibniz.hu.forumspider.SpiderMain [xml file]`即可开启爬虫
 
-&nbsp;&nbsp;&nbsp;&nbsp;执行`java leibniz.hu.forumspider.MakeWeb`即可将下载目录里所有图片生成一系列网页以便进行浏览。
+&nbsp;&nbsp;&nbsp;&nbsp;执行`java leibniz.hu.forumspider.MakeWeb [xml file]`即可将下载目录里所有图片生成一系列网页以便进行浏览。
+
+&nbsp;&nbsp;&nbsp;&nbsp;其中[xml file]为可选参数，指定程序读取的配置文件；若为空，则读取默认的spider.cfg.xml。
 
 ##原理
 &nbsp;&nbsp;&nbsp;&nbsp;主线程负责遍历帖子列表（从用户再xml中设定的初始页面开始），找到符合关键词要求的帖子，并将帖子标题及URL放入一个List<Map\>。main()主函数启动时会启动线程管理器，以便初始化启动帖子解析器和图片下载器。
