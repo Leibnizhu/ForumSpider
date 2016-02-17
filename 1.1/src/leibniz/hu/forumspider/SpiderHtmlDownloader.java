@@ -29,9 +29,6 @@ public class SpiderHtmlDownloader extends SpiderAntiCrawlerHandler{
 			return bufHtml.toString();
 		} catch (IOException e) {
 			//先关闭资源再重新尝试，防止开启过多连接
-			if(null != scanner){
-				scanner.close();
-			}
 			if(null != conn){
 				((HttpURLConnection)conn).disconnect();
 			}

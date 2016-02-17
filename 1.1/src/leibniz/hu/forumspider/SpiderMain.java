@@ -49,7 +49,7 @@ public class SpiderMain extends SpiderHtmlDownloader{
 				String strHtml = downHtml(curURL, refURL, 0);
                 System.out.println(new Date() + " 帖子列表" + curURL + "下载完毕，共计" + strHtml.length() + "字节。开始目标帖子地址……");
                 
-				if(null != strHtml && strHtml.length > minPageSize){
+				if(null != strHtml && strHtml.length() > minPageSize){
 					Matcher mArticleLink = pArticleLink.matcher(strHtml);
 					//用while遍历整个网页所有的匹配的地址
 					while(mArticleLink.find()){

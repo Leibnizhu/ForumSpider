@@ -79,7 +79,7 @@ public class SpiderConfigurator {
 				}
 				//找到帖子中图片地址的正则表达式，放入属性
 				if("min-page-size".equals(tempNodeName)){
-					minPageSize = tempNode.getTextContent();
+					minPageSize = Integer.parseInt(tempNode.getTextContent());
 				}
 			}
 			createSaveDict();

@@ -46,7 +46,7 @@ public class ArticleScanThread extends SpiderHtmlDownloader implements Runnable 
 					String strHtml = downHtml(curURL, refURL, 0);
 	                //System.out.println(new Date() + " 帖子《" + tempMission.get("title") + "》下载完毕，共计" + strHtml.length() + "字节。开始解析图片地址……");
 	                
-					if(null != strHtml && strHtml.length > minPageSize){
+					if(null != strHtml && strHtml.length() > minPageSize){
 						//匹配到图片链接
 						Matcher mImageLink = pImageLink.matcher(strHtml);
 						while(mImageLink.find()){
