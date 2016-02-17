@@ -10,22 +10,22 @@ public class ImageDownThread extends SpiderBinaryDownloader implements Runnable 
 	public static int downloadingImgNum = 0;
 	public static int downloadedImgNum = 0;
 
-	public boolean isNeedReDownload(RandomAccessFile raf){
+	public boolean isNeedReDownload(File fImg){
 		try {
+			RandomAccessFile raf = new RandomAccessFile(fImg, "r");
 			//通过判断文件结尾是否为0xff 0xd9来判定图片是否下载完整
 			raf.seek(raf.length()-2);
 			if(raf.read() == 0xff){
 				raf.seek(raf.length()-1);
 				if(raf.read() == 0xd9){
+					//文件完整，返回false
 					raf.close();
 					return false;
-				} else {
-					//不完整则返回true重新下载，否则返回false
-					return true;
 				}
-			} else {
-				return true;
 			}
+			//不完整，返回true重新下载
+			raf.close();
+			return true;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -43,7 +43,7 @@ public class ImageDownThread extends SpiderBinaryDownloader implements Runnable 
 				this.imageURL = tempMission.get("imageDownURL");
 				this.saveDictionary = tempMission.get("saveDictionary").replaceAll("[#<>!]", "");
 				downloadingImgNum++;
-				if(download(imageURL, saveDictionary, 0)){
+				if(downImage(imageURL, saveDictionary, 0)){
 					//下载成功
 					downloadedImgNum++;
 				}
@@ -51,9 +51,12 @@ public class ImageDownThread extends SpiderBinaryDownloader implements Runnable 
 					downloadingImgNum--;
 				}
 			}
+			//处理完一个下载任务，休眠一段时间
+			//一方面防反爬，另一方面方便ThreadManager判断是否可以关闭线程
 			try {
 				Thread.sleep(5000);
 			} catch (InterruptedException e) {
+				//由ThreadManager发出的中断，终止当前进程
 				break;
 			}
 		}

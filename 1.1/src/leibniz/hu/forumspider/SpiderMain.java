@@ -46,7 +46,7 @@ public class SpiderMain extends SpiderHtmlDownloader{
 				System.out.println(new Date() + " 打开新一页帖子列表：" + curURL);
 
 				//先直接读取整个页面
-				String strHtml =  /* SpiderUtils. */downHtml(curURL, refURL, 0);
+				String strHtml = downHtml(curURL, refURL, 0);
                 System.out.println(new Date() + " 帖子列表" + curURL + "下载完毕，共计" + strHtml.length() + "字节。开始目标帖子地址……");
                 
                 Matcher mArticleLink = pArticleLink.matcher(strHtml);

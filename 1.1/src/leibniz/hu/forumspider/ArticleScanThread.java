@@ -14,18 +14,12 @@ import leibniz.hu.forumspider.ThreadManager;
 public class ArticleScanThread extends SpiderHtmlDownloader implements Runnable {
 	//帖子URL
 	private String articleURL;
-	//保存的文件夹路径（不包含帖子标题的子文件夹）
-	/* private String originDictionary = SpiderUtils.savepath; */
 	//保存的文件夹路径（包含帖子标题的子文件夹）
 	private String saveDictionary;
-	//private String nextPageRegax;
-	//private String imgAddrRegax;
 	
 	@Override
 	public void run() {
 		Map<String, String> tempMission = null;
-		/* nextPageRegax = SpiderUtils.nextPage;
-		imgAddrRegax = SpiderUtils.imgAddr; */
 		while(true){
 			ThreadManager.managerGuard();
 			
@@ -81,9 +75,12 @@ public class ArticleScanThread extends SpiderHtmlDownloader implements Runnable 
 					}
 				}
 			}
+			//处理完一个下载任务，休眠一段时间
+			//一方面防反爬，另一方面方便ThreadManager判断是否可以关闭线程
 			try {
 				Thread.sleep(3000);
 			} catch (InterruptedException e) {
+				//由ThreadManager发出的中断，终止当前进程
 				break;  
 			}
 		}
