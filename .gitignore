@@ -1,0 +1,15 @@
+/build/
+/target/
+/bin/
+# filter eclipse file
+*.classpath
+*.project
+*.log
+
+*.log
+
+# filter idea file
+*.iml
+
+#filter idea dir
+/.idea/
