@@ -1,5 +1,6 @@
 package leibniz.hu.forumspider;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import us.codecraft.webmagic.Page;
@@ -36,16 +37,17 @@ public class ImgPageProcessor implements PageProcessor {
 		} else if (curURL.contains("viewthread.php")) {
 			// 帖子页，找下一页帖子和图片地址
 			page.addTargetRequests(page.getHtml().links().regex(URL_POST).all());
-			List<String> imgURLList = page.getHtml().regex(URL_IMG).all();
-			for(String imgURL : imgURLList){
-				imgURL = SpiderUtils.relativeURLHandler(curURL, imgURL);
-				page.addTargetRequest(imgURL);
+			List<String> relImgURL = page.getHtml().regex(URL_IMG).all();
+			if (null != relImgURL && relImgURL.size() > 0) {
+				List<String> absImgURL = new ArrayList<String>();
+				for (String imgURL : relImgURL) {
+					absImgURL.add(SpiderUtils.relativeURLHandler(curURL, imgURL));
+				}
+				// 将要下载的图片地址和标题放入Field
+				String title = page.getHtml().css("title", "text").get().replace(" - 91自拍论坛 - Powered by Discuz!", "");
+				page.putField("title", title);
+				page.putField("imgURLs", absImgURL);
 			}
-			// 保存帖子标题
-			String title = page.getHtml().css("title", "text").get().replace(" - 91自拍论坛 - Powered by Discuz!", "");
-			page.putField("title", title);
-		} else if (curURL.contains("attachments")) {
-			// 附件，图片
 		} else {
 			// 其他，忽略
 		}
