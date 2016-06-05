@@ -1,13 +1,17 @@
 package leibniz.hu.forumspider;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.processor.PageProcessor;
 
 public class ImgPageProcessor implements PageProcessor {
+	private static Set<String> downedImg = new HashSet<String>();
+	
 	// 抓取网站的相关配置，包括编码、抓取间隔、重试次数等
 	private Site site = Site.me().setCharset("utf-8").setRetryTimes(5).setSleepTime(2000).setUserAgent(
 			"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36");
@@ -36,11 +40,15 @@ public class ImgPageProcessor implements PageProcessor {
 			page.addTargetRequests(page.getHtml().links().regex(URL_POST).all());
 		} else if (curURL.contains("viewthread.php")) {
 			// 帖子页，找下一页帖子和图片地址
-			page.addTargetRequests(page.getHtml().links().regex(URL_POST).all());
+			page.addTargetRequests(page.getHtml().links().regex(URL_POST).replace("&authorid=\\d+", "").all());
 			List<String> relImgURL = page.getHtml().regex(URL_IMG).all();
 			if (null != relImgURL && relImgURL.size() > 0) {
 				List<String> absImgURL = new ArrayList<String>();
 				for (String imgURL : relImgURL) {
+					if(downedImg.contains(imgURL)){
+						continue;
+					}
+					downedImg.add(imgURL);
 					absImgURL.add(SpiderUtils.relativeURLHandler(curURL, imgURL));
 				}
 				// 将要下载的图片地址和标题放入Field
