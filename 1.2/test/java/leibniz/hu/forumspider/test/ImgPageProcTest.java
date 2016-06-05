@@ -7,8 +7,11 @@ import leibniz.hu.forumspider.ImgPageProcessor;
 import us.codecraft.webmagic.Spider;
 
 public class ImgPageProcTest {
+	public static void main(String[] args){
+		startSpider();
+	}
 	@Test
-	public void startSpider() {
+	public static void startSpider() {
 		Spider.create(new ImgPageProcessor()).addPipeline(new ImageToLocalPipeline("d:\\StackFlow\\91new\\"))/*.setDownloader(new ImageDownloader())*/
 			.addUrl("http://f.k6p.co/forumdisplay.php?fid=19").thread(20).run();
 		Spider.create(new ImgPageProcessor()).addPipeline(new ImageToLocalPipeline("d:\\StackFlow\\91new\\"))/*.setDownloader(new ImageDownloader())*/

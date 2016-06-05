@@ -47,16 +47,15 @@ public class ImageToLocalPipeline extends FilePersistentBase implements Pipeline
 		for (String imgURL : (ArrayList<String>) imgURLs) {
 			// 获取url中的文件名
 			String filename = imgURL.substring(imgURL.lastIndexOf("/") + 1);
-			filename = preHandle(filename);
-			saveImage(imgURL, filename, (this.path + title + "\\"));
+			saveImage(imgURL, preHandle(filename), (this.path + title + "\\"));
 		}
 	}
 
 	private String preHandle(String filename) {
-		filename.replaceAll(" - 91自拍达人原创申请", "");
-		filename.replaceAll(" - 我爱我妻", "");
-		filename.replaceAll("[@\\?\\/\\*]", "");	//去掉可能引起路径错误的字符
-		return null;
+		filename = filename.replaceAll(" - 91自拍达人原创申请", "");
+		filename = filename.replaceAll(" - 我爱我妻", "");
+		filename = filename.replaceAll("[@\\?\\/\\*]", "");	//去掉可能引起路径错误的字符
+		return filename;
 	}
 
 	private void saveImage(String imgURL, String filename, String path) {
@@ -68,11 +67,6 @@ public class ImageToLocalPipeline extends FilePersistentBase implements Pipeline
 		// 保存文件到指定路径
 		InputStream in = null;
 		try {
-			CloseableHttpClient httpclient = HttpClients.createDefault();
-			HttpGet httpget = new HttpGet(imgURL);
-			HttpResponse response = httpclient.execute(httpget);
-			HttpEntity entity = response.getEntity();
-			in = entity.getContent();
 			File downFile = new File(pathFile, filename);
 			//先判断文件是否已存在，如果存在，判断是否完整，完整则不用下载，直接return
 			if(downFile.exists()){
@@ -81,6 +75,11 @@ public class ImageToLocalPipeline extends FilePersistentBase implements Pipeline
 					return;
 				}
 			}
+			CloseableHttpClient httpclient = HttpClients.createDefault();
+			HttpGet httpget = new HttpGet(imgURL);
+			HttpResponse response = httpclient.execute(httpget);
+			HttpEntity entity = response.getEntity();
+			in = entity.getContent();
 			System.out.println("正在下载：" + imgURL);
 			FileOutputStream fout = new FileOutputStream(downFile);
 			int len = -1;
