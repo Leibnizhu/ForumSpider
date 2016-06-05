@@ -47,14 +47,14 @@ public class ImageToLocalPipeline extends FilePersistentBase implements Pipeline
 		for (String imgURL : (ArrayList<String>) imgURLs) {
 			// 获取url中的文件名
 			String filename = imgURL.substring(imgURL.lastIndexOf("/") + 1);
-			saveImage(imgURL, preHandle(filename), (this.path + title + "\\"));
+			saveImage(imgURL, filename, (this.path + preHandle(title) + "\\"));
 		}
 	}
 
 	private String preHandle(String filename) {
 		filename = filename.replaceAll(" - 91自拍达人原创申请", "");
 		filename = filename.replaceAll(" - 我爱我妻", "");
-		filename = filename.replaceAll("[@\\?\\/\\*]", "");	//去掉可能引起路径错误的字符
+		filename = filename.replaceAll("[@\\\\?/\\\\*<>]", "");	//去掉可能引起路径错误的字符
 		return filename;
 	}
 
