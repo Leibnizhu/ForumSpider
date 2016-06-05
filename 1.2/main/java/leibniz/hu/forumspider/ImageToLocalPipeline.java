@@ -68,7 +68,6 @@ public class ImageToLocalPipeline extends FilePersistentBase implements Pipeline
 		// 保存文件到指定路径
 		InputStream in = null;
 		try {
-			System.out.println("正在下载：" + imgURL);
 			CloseableHttpClient httpclient = HttpClients.createDefault();
 			HttpGet httpget = new HttpGet(imgURL);
 			HttpResponse response = httpclient.execute(httpget);
@@ -78,9 +77,11 @@ public class ImageToLocalPipeline extends FilePersistentBase implements Pipeline
 			//先判断文件是否已存在，如果存在，判断是否完整，完整则不用下载，直接return
 			if(downFile.exists()){
 				if(!isNeedReDownload(downFile)){
+					System.out.println(imgURL + "已存在并文件完整，无需重新下载");
 					return;
 				}
 			}
+			System.out.println("正在下载：" + imgURL);
 			FileOutputStream fout = new FileOutputStream(downFile);
 			int len = -1;
 			byte[] tmp = new byte[1024];
