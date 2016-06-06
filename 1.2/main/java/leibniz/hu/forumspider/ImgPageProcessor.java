@@ -13,14 +13,27 @@ public class ImgPageProcessor implements PageProcessor {
 	private static Set<String> downedImg = new HashSet<String>();
 	
 	// 抓取网站的相关配置，包括编码、抓取间隔、重试次数等
-	private Site site = Site.me().setCharset("utf-8").setRetryTimes(5).setSleepTime(2000).setUserAgent(
+	private Site site = Site.me().setCharset("utf-8").setRetryTimes(5).setSleepTime(1000).setUserAgent(
 			"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36");
 	// 帖子列表地址的正则表达式
-	public static final String URL_LIST = "http://f.k6p.co/forumdisplay.php\\?fid=\\d+&page=\\d+";
+	private String URL_LIST;
 	// 帖子地址的正则表达式
-	public static final String URL_POST = "(http://f.k6p.co/viewthread.php\\?tid=\\d+&(.*))";
+	private String URL_POST;
 	// 图片地址的正则表达式
-	public static final String URL_IMG = "<img src=\"images/common/none.gif\" file=\"(attachments/\\w+.jpe?g)";
+	private String URL_IMG;
+	//URL_POST匹配到的URL需要忽略的部分（比如authorid参数，不同的authorid意义不大，还会导致反复访问同一帖子）
+	private String POST_IGNORE;
+	//标题中忽略的部分，比如后缀的一串字符
+	private String TITLE_IGNORE;
+
+	public ImgPageProcessor(String uRL_LIST, String uRL_POST, String uRL_IMG, String pOST_IGNORE, String tITLE_IGNORE) {
+		super();
+		URL_LIST = uRL_LIST;
+		URL_POST = uRL_POST;
+		URL_IMG = uRL_IMG;
+		POST_IGNORE = pOST_IGNORE;
+		TITLE_IGNORE = tITLE_IGNORE;
+	}
 
 	@Override
 	public Site getSite() {
@@ -40,7 +53,7 @@ public class ImgPageProcessor implements PageProcessor {
 			page.addTargetRequests(page.getHtml().links().regex(URL_POST).all());
 		} else if (curURL.contains("viewthread.php")) {
 			// 帖子页，找下一页帖子和图片地址
-			page.addTargetRequests(page.getHtml().links().regex(URL_POST).replace("&authorid=\\d+", "").all());
+			page.addTargetRequests(page.getHtml().links().regex(URL_POST).replace(POST_IGNORE, "").all());
 			List<String> relImgURL = page.getHtml().regex(URL_IMG).all();
 			if (null != relImgURL && relImgURL.size() > 0) {
 				List<String> absImgURL = new ArrayList<String>();
@@ -52,7 +65,7 @@ public class ImgPageProcessor implements PageProcessor {
 					absImgURL.add(SpiderUtils.relativeURLHandler(curURL, imgURL));
 				}
 				// 将要下载的图片地址和标题放入Field
-				String title = page.getHtml().css("title", "text").get().replace(" - 91自拍论坛 - Powered by Discuz!", "");
+				String title = page.getHtml().css("title", "text").get().replace(TITLE_IGNORE, "");
 				page.putField("title", title);
 				page.putField("imgURLs", absImgURL);
 			}

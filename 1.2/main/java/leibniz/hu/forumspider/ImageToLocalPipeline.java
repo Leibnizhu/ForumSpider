@@ -51,11 +51,9 @@ public class ImageToLocalPipeline extends FilePersistentBase implements Pipeline
 		}
 	}
 
-	private String preHandle(String filename) {
-		filename = filename.replaceAll(" - 91自拍达人原创申请", "");
-		filename = filename.replaceAll(" - 我爱我妻", "");
-		filename = filename.replaceAll("[\\\\|\\\\/\"@ :\\\\?\\\\*\\\\.<>]", "");	//去掉可能引起路径错误的字符
-		return filename;
+	private String preHandle(String dir) {
+		dir = dir.replaceAll("[\\\\|\\\\/\"@ :\\\\?\\\\*\\\\.<>]", "");	//去掉可能引起路径错误的字符
+		return dir;
 	}
 
 	private void saveImage(String imgURL, String filename, String path) {
