@@ -55,7 +55,6 @@ public class ImageDownThread implements Runnable {
 						raf.seek(raf.length()-1);
 						if(raf.read() == 0xd9){
 							raf.close();
-							//System.out.println("图片" + filename + "已存在");
 							return;
 						}
 					}

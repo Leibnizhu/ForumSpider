@@ -7,63 +7,63 @@ import java.io.StringWriter;
 
 import org.apache.commons.codec.binary.Base64;
 
-public class SpiderUtils{
-	//将异常输出跟踪栈转换成String
+public class SpiderUtils {
+	// 将异常输出跟踪栈转换成String
 	public static String getTrace(Throwable t) {
-        StringWriter stringWriter= new StringWriter();
-        PrintWriter writer= new PrintWriter(stringWriter);
-        t.printStackTrace(writer);
-        StringBuffer buffer= stringWriter.getBuffer();
-        return buffer.toString();
-    }
-	
-	//处理相对URl路径，获取绝对URL路径
-	public static String relativeURLHandler(String curURL, String relativeURL){
-		String rootURL =  curURL.substring(0, curURL.indexOf("/", 7));
-		String curParentURL  = curURL.substring(0, curURL.lastIndexOf("/"));
-		if(relativeURL.startsWith("/")){
-			//相对于网站根目录的地址
+		StringWriter stringWriter = new StringWriter();
+		PrintWriter writer = new PrintWriter(stringWriter);
+		t.printStackTrace(writer);
+		StringBuffer buffer = stringWriter.getBuffer();
+		return buffer.toString();
+	}
+
+	// 处理相对URl路径，获取绝对URL路径
+	public static String relativeURLHandler(String curURL, String relativeURL) {
+		String rootURL = curURL.substring(0, curURL.indexOf("/", 7));
+		String curParentURL = curURL.substring(0, curURL.lastIndexOf("/"));
+		if (relativeURL.startsWith("/")) {
+			// 相对于网站根目录的地址
 			return rootURL + relativeURL;
-		} if(relativeURL.startsWith("http://")){
+		}
+		if (relativeURL.startsWith("http://")) {
 			return relativeURL;
-		}else {
+		} else {
 			return curParentURL + "/" + relativeURL;
 		}
 	}
-	
-	// 将图片文件转化为字节数组字符串，并对其进行Base64编码处理
-		public static String GetImageStr(byte[] data) {
-			// 对字节数组Base64编码
-			Base64 encoder = new Base64();
-			return encoder.encodeToString(data);// 返回Base64编码过的字节数组字符串
-		}
 
-		// 对字节数组字符串进行Base64解码并生成图片
-		public static boolean GenerateImage(String path, String filename, String imgStr) {
-			System.out.println("imgStr == null:" + imgStr == null);
-			if (imgStr == null) // 图像数据为空
-			{
-				return false;
-			}
-			Base64 decoder = new Base64();
-			try {
-				// Base64解码
-				byte[] b = decoder.decode(imgStr);
-				for (int i = 0; i < b.length; ++i) {
-					if (b[i] < 0) {// 调整异常数据
-						b[i] += 256;
-					}
-				}
-				// 生成jpeg图片
-				String imgFilePath = path + filename;// 新生成的图片
-				OutputStream out = new FileOutputStream(imgFilePath);
-				out.write(b);
-				out.flush();
-				out.close();
-				return true;
-			} catch (Exception e) {
-				System.out.println("e:" + e.getMessage());
-				return false;
-			}
+	// 将图片文件转化为字节数组字符串，并对其进行Base64编码处理
+	public static String GetImageStr(byte[] data) {
+		// 对字节数组Base64编码
+		Base64 encoder = new Base64();
+		return encoder.encodeToString(data);// 返回Base64编码过的字节数组字符串
+	}
+
+	// 对字节数组字符串进行Base64解码并生成图片
+	public static boolean GenerateImage(String path, String filename, String imgStr) {
+		if (imgStr == null) // 图像数据为空
+		{
+			return false;
 		}
+		Base64 decoder = new Base64();
+		try {
+			// Base64解码
+			byte[] b = decoder.decode(imgStr);
+			for (int i = 0; i < b.length; ++i) {
+				if (b[i] < 0) {// 调整异常数据
+					b[i] += 256;
+				}
+			}
+			// 生成jpeg图片
+			String imgFilePath = path + filename;// 新生成的图片
+			OutputStream out = new FileOutputStream(imgFilePath);
+			out.write(b);
+			out.flush();
+			out.close();
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();;
+			return false;
+		}
+	}
 }
