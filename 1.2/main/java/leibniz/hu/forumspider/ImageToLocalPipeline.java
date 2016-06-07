@@ -12,6 +12,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.log4j.Logger;
 
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
@@ -19,6 +20,7 @@ import us.codecraft.webmagic.pipeline.Pipeline;
 import us.codecraft.webmagic.utils.FilePersistentBase;
 
 public class ImageToLocalPipeline extends FilePersistentBase implements Pipeline {
+	private static Logger log = Logger.getLogger(ImageToLocalPipeline.class);
 
 	public ImageToLocalPipeline(String path) {
 		if (!path.endsWith("\\")) {
@@ -69,7 +71,7 @@ public class ImageToLocalPipeline extends FilePersistentBase implements Pipeline
 			//先判断文件是否已存在，如果存在，判断是否完整，完整则不用下载，直接return
 			if(downFile.exists()){
 				if(!isNeedReDownload(downFile)){
-					System.out.println(imgURL + "已存在并文件完整，无需重新下载");
+					log.info(imgURL + "已存在并文件完整，无需重新下载");
 					return;
 				}
 			}
@@ -78,7 +80,7 @@ public class ImageToLocalPipeline extends FilePersistentBase implements Pipeline
 			HttpResponse response = httpclient.execute(httpget);
 			HttpEntity entity = response.getEntity();
 			in = entity.getContent();
-			System.out.println("正在下载：" + imgURL);
+			log.info("正在下载：" + imgURL);
 			FileOutputStream fout = new FileOutputStream(downFile);
 			int len = -1;
 			byte[] tmp = new byte[1024];
@@ -88,13 +90,13 @@ public class ImageToLocalPipeline extends FilePersistentBase implements Pipeline
 			fout.flush();
 			fout.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error(SpiderUtils.getTrace(e));
 		} finally {
 			if(null != in){
 				try {
 					in.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					log.error(SpiderUtils.getTrace(e));
 				}
 			}
 		}
@@ -117,7 +119,7 @@ public class ImageToLocalPipeline extends FilePersistentBase implements Pipeline
 			raf.close();
 			return true;
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error(SpiderUtils.getTrace(e));
 		}
 		return true;
 	}

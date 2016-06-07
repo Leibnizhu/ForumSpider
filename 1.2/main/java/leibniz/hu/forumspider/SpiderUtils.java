@@ -2,10 +2,21 @@ package leibniz.hu.forumspider;
 
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import org.apache.commons.codec.binary.Base64;
 
 public class SpiderUtils{
+	//将异常输出跟踪栈转换成String
+	public static String getTrace(Throwable t) {
+        StringWriter stringWriter= new StringWriter();
+        PrintWriter writer= new PrintWriter(stringWriter);
+        t.printStackTrace(writer);
+        StringBuffer buffer= stringWriter.getBuffer();
+        return buffer.toString();
+    }
+	
 	//处理相对URl路径，获取绝对URL路径
 	public static String relativeURLHandler(String curURL, String relativeURL){
 		String rootURL =  curURL.substring(0, curURL.indexOf("/", 7));
