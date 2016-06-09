@@ -25,14 +25,20 @@ public class ImgPageProcessor implements PageProcessor {
 	private String POST_IGNORE;
 	//标题中忽略的部分，比如后缀的一串字符
 	private String TITLE_IGNORE;
+	//帖子列表地址的标识
+	private String LIST_FLAG;
+	//帖子地址标识
+	private String POST_FLAG;
 
-	public ImgPageProcessor(String uRL_LIST, String uRL_POST, String uRL_IMG, String pOST_IGNORE, String tITLE_IGNORE) {
-		super();
+	public ImgPageProcessor(String uRL_LIST, String uRL_POST, String uRL_IMG, String pOST_IGNORE, String tITLE_IGNORE,
+			String lIST_FLAG, String pOST_FLAG) {
 		URL_LIST = uRL_LIST;
 		URL_POST = uRL_POST;
 		URL_IMG = uRL_IMG;
 		POST_IGNORE = pOST_IGNORE;
 		TITLE_IGNORE = tITLE_IGNORE;
+		LIST_FLAG = lIST_FLAG;
+		POST_FLAG = pOST_FLAG;
 	}
 
 	@Override
@@ -46,12 +52,13 @@ public class ImgPageProcessor implements PageProcessor {
 	@Override
 	public void process(Page page) {
 		String curURL = page.getUrl().toString();
+		System.out.println("正在处理：" + curURL);
 		// 根据页面的不同类型分别进行对应操作
-		if (curURL.contains("forumdisplay.php")) {
+		if (curURL.contains(LIST_FLAG)) {
 			// 帖子列表页，找下一页帖子列表页和帖子地址
 			page.addTargetRequests(page.getHtml().links().regex(URL_LIST).all());
 			page.addTargetRequests(page.getHtml().links().regex(URL_POST).all());
-		} else if (curURL.contains("viewthread.php")) {
+		} else if (curURL.contains(POST_FLAG)) {
 			// 帖子页，找下一页帖子和图片地址
 			page.addTargetRequests(page.getHtml().links().regex(URL_POST).replace(POST_IGNORE, "").all());
 			List<String> relImgURL = page.getHtml().regex(URL_IMG).all();
